@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Plus, TrendingDown, Calculator, Target } from 'lucide-react';
+import { Plus, TrendingDown, Calculator, Target, Edit, Trash2, Save, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,7 @@ const DebtAdvisor = () => {
 
   const [strategy, setStrategy] = useState('avalanche');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingDebt, setEditingDebt] = useState(null);
   const [newDebt, setNewDebt] = useState({
     name: '',
     balance: '',
@@ -50,15 +51,22 @@ const DebtAdvisor = () => {
     type: 'Credit Card'
   });
 
+  // Debt Calculator State
+  const [calculatorInputs, setCalculatorInputs] = useState({
+    principal: '10000',
+    rate: '18',
+    payment: '500'
+  });
+
   const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
   const totalMinPayment = debts.reduce((sum, debt) => sum + debt.minPayment, 0);
   const weightedAvgRate = debts.reduce((sum, debt) => sum + (debt.rate * debt.balance), 0) / totalDebt;
 
   const sortedDebts = [...debts].sort((a, b) => {
     if (strategy === 'avalanche') {
-      return b.rate - a.rate; // Highest rate first
+      return b.rate - a.rate;
     } else {
-      return a.balance - b.balance; // Smallest balance first
+      return a.balance - b.balance;
     }
   });
 
@@ -78,12 +86,58 @@ const DebtAdvisor = () => {
     }
   };
 
-  const calculatePayoffTime = (balance: number, rate: number, payment: number) => {
+  const handleEditDebt = (debt) => {
+    setEditingDebt({
+      ...debt,
+      balance: debt.balance.toString(),
+      rate: debt.rate.toString(),
+      minPayment: debt.minPayment.toString()
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingDebt) {
+      setDebts(debts.map(debt => 
+        debt.id === editingDebt.id 
+          ? {
+              ...editingDebt,
+              balance: parseFloat(editingDebt.balance),
+              rate: parseFloat(editingDebt.rate),
+              minPayment: parseFloat(editingDebt.minPayment)
+            }
+          : debt
+      ));
+      setEditingDebt(null);
+    }
+  };
+
+  const handleDeleteDebt = (id) => {
+    setDebts(debts.filter(debt => debt.id !== id));
+  };
+
+  const calculatePayoffTime = (balance, rate, payment) => {
     const monthlyRate = rate / 100 / 12;
     if (monthlyRate === 0) return Math.ceil(balance / payment);
     const months = -Math.log(1 - (balance * monthlyRate) / payment) / Math.log(1 + monthlyRate);
     return Math.ceil(months);
   };
+
+  const calculateDebtPayoff = () => {
+    const principal = parseFloat(calculatorInputs.principal);
+    const monthlyRate = parseFloat(calculatorInputs.rate) / 100 / 12;
+    const payment = parseFloat(calculatorInputs.payment);
+    
+    if (monthlyRate === 0) {
+      return Math.ceil(principal / payment);
+    }
+    
+    const months = -Math.log(1 - (principal * monthlyRate) / payment) / Math.log(1 + monthlyRate);
+    return Math.ceil(months);
+  };
+
+  const payoffMonths = calculateDebtPayoff();
+  const payoffYears = Math.floor(payoffMonths / 12);
+  const remainingMonths = payoffMonths % 12;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -145,10 +199,9 @@ const DebtAdvisor = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="strategy">Strategy</TabsTrigger>
-            <TabsTrigger value="calculator">Calculator</TabsTrigger>
+            <TabsTrigger value="calculator">Payoff Calculator</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Your Debts</h2>
@@ -161,7 +214,6 @@ const DebtAdvisor = () => {
               </Button>
             </div>
 
-            {/* Add Debt Form */}
             {showAddForm && (
               <Card>
                 <CardHeader>
@@ -241,29 +293,109 @@ const DebtAdvisor = () => {
               </Card>
             )}
 
-            {/* Debts List */}
             <div className="space-y-4">
               {debts.map((debt) => (
                 <Card key={debt.id}>
                   <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold">{debt.name}</h3>
-                        <p className="text-gray-600">{debt.type}</p>
+                    {editingDebt && editingDebt.id === debt.id ? (
+                      <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Debt Name</Label>
+                            <Input
+                              value={editingDebt.name}
+                              onChange={(e) => setEditingDebt({...editingDebt, name: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Type</Label>
+                            <Select value={editingDebt.type} onValueChange={(value) => setEditingDebt({...editingDebt, type: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                                <SelectItem value="Student Loan">Student Loan</SelectItem>
+                                <SelectItem value="Auto Loan">Auto Loan</SelectItem>
+                                <SelectItem value="Personal Loan">Personal Loan</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div>
+                            <Label>Balance</Label>
+                            <Input
+                              type="number"
+                              value={editingDebt.balance}
+                              onChange={(e) => setEditingDebt({...editingDebt, balance: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Interest Rate (%)</Label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              value={editingDebt.rate}
+                              onChange={(e) => setEditingDebt({...editingDebt, rate: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label>Min Payment</Label>
+                            <Input
+                              type="number"
+                              value={editingDebt.minPayment}
+                              onChange={(e) => setEditingDebt({...editingDebt, minPayment: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">
+                            <Save className="mr-2 h-4 w-4" />
+                            Save
+                          </Button>
+                          <Button variant="outline" onClick={() => setEditingDebt(null)}>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold">${debt.balance.toLocaleString()}</p>
-                        <p className="text-sm text-gray-600">{debt.rate}% APR</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Monthly Payment: ${debt.minPayment}</span>
-                        <span>Payoff Time: {calculatePayoffTime(debt.balance, debt.rate, debt.minPayment)} months</span>
-                      </div>
-                      <Progress value={(debt.minPayment / debt.balance) * 100} className="h-2" />
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">{debt.name}</h3>
+                            <p className="text-gray-600">{debt.type}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">${debt.balance.toLocaleString()}</p>
+                            <p className="text-sm text-gray-600">{debt.rate}% APR</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between text-sm">
+                            <span>Monthly Payment: ${debt.minPayment}</span>
+                            <span>Payoff Time: {calculatePayoffTime(debt.balance, debt.rate, debt.minPayment)} months</span>
+                          </div>
+                          <Progress value={(debt.minPayment / debt.balance) * 100} className="h-2" />
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditDebt(debt)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteDebt(debt.id)} className="text-red-600 hover:text-red-700">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -332,23 +464,109 @@ const DebtAdvisor = () => {
             </Card>
           </TabsContent>
 
-          {/* Calculator Tab */}
+          {/* Debt Payoff Calculator Tab */}
           <TabsContent value="calculator" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Debt Payoff Calculator</CardTitle>
-                <CardDescription>
-                  See how extra payments can accelerate your debt freedom
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <Calculator className="h-16 w-16 mx-auto mb-4" />
-                  <p>Interactive debt payoff calculator coming soon!</p>
-                  <p className="text-sm">Calculate payoff times with extra payments</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-red-600" />
+                    Debt Payoff Calculator
+                  </CardTitle>
+                  <CardDescription>
+                    Calculate how long it will take to pay off your debt
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="calc-principal">Total Debt Amount ($)</Label>
+                    <Input
+                      id="calc-principal"
+                      type="number"
+                      value={calculatorInputs.principal}
+                      onChange={(e) => setCalculatorInputs({...calculatorInputs, principal: e.target.value})}
+                      placeholder="10000"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="calc-rate">Annual Interest Rate (%)</Label>
+                    <Input
+                      id="calc-rate"
+                      type="number"
+                      step="0.1"
+                      value={calculatorInputs.rate}
+                      onChange={(e) => setCalculatorInputs({...calculatorInputs, rate: e.target.value})}
+                      placeholder="18"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="calc-payment">Monthly Payment ($)</Label>
+                    <Input
+                      id="calc-payment"
+                      type="number"
+                      value={calculatorInputs.payment}
+                      onChange={(e) => setCalculatorInputs({...calculatorInputs, payment: e.target.value})}
+                      placeholder="500"
+                    />
+                  </div>
+                  
+                  <Button className="w-full bg-red-600 hover:bg-red-700">
+                    Calculate Payoff Time
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payoff Timeline</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center p-6 bg-gradient-to-r from-red-100 to-orange-100 rounded-xl">
+                    <p className="text-sm text-gray-600 mb-2">Time to Pay Off</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {payoffYears > 0 && `${payoffYears} years `}
+                      {remainingMonths} months
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                      <p className="text-sm text-red-600 font-medium">Total Interest</p>
+                      <p className="text-lg font-bold text-red-800">
+                        ${((parseFloat(calculatorInputs.payment) * payoffMonths) - parseFloat(calculatorInputs.principal)).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-600 font-medium">Total Payments</p>
+                      <p className="text-lg font-bold text-blue-800">
+                        ${(parseFloat(calculatorInputs.payment) * payoffMonths).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Principal Amount</span>
+                      <span>${parseFloat(calculatorInputs.principal).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Interest Rate</span>
+                      <span>{calculatorInputs.rate}% p.a.</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Monthly Payment</span>
+                      <span>${calculatorInputs.payment}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Total Months</span>
+                      <span>{payoffMonths} months</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

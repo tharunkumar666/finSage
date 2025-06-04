@@ -1,337 +1,467 @@
 
 import { useState } from 'react';
-import { User, Camera, ChevronRight, TrendingUp, DollarSign, AlertCircle } from 'lucide-react';
+import { User, Edit, Camera, TrendingUp, AlertCircle, Settings, Trash2, Save, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Profile = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState('/placeholder.svg');
   
-  // Mock user data
-  const userData = {
-    name: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
-    joinDate: '2023-12-01',
-    profilePhoto: null,
-    isPremium: false,
-    riskScore: 28,
-    riskLevel: 'Moderate',
-    completionPercentage: 75,
-    investmentSummary: {
-      totalInvested: 15420,
-      monthlyReturns: 8.5,
-      portfolioGrowth: 12.4
-    },
-    debtSummary: {
-      totalDebt: 38200,
-      avgInterestRate: 7.8
+  const [userInfo, setUserInfo] = useState({
+    name: 'John Smith',
+    email: 'john.smith@email.com',
+    phone: '+1 (555) 123-4567',
+    location: 'New York, USA',
+    riskProfile: 'Moderate',
+    memberSince: '2024-01-01',
+    isPremium: false
+  });
+
+  const [editedInfo, setEditedInfo] = useState({ ...userInfo });
+
+  // Mock data for portfolio summary
+  const portfolioSummary = {
+    totalInvestments: 15420,
+    monthlyReturns: 8.5,
+    totalGains: 2420,
+    totalDebt: 26200,
+    monthlyDebtPayment: 385,
+    investments: [
+      { name: 'S&P 500 ETF', amount: 8500, allocation: 55 },
+      { name: 'Bond Index Fund', amount: 3850, allocation: 25 },
+      { name: 'Bitcoin', amount: 2070, allocation: 13 },
+      { name: 'Cash Savings', amount: 1000, allocation: 7 }
+    ],
+    debts: [
+      { name: 'Student Loan', balance: 25000, rate: 6.8, payment: 280 },
+      { name: 'Credit Card', balance: 1200, rate: 18.9, payment: 105 }
+    ]
+  };
+
+  const profileCompletion = 85;
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target.result);
+        toast({
+          title: "Profile Image Updated",
+          description: "Your profile image has been successfully updated.",
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const completedActions = {
-    riskQuiz: true,
-    addedInvestments: true,
-    addedDebts: true,
-    usedCalculators: true,
-    setUpPreferences: false,
-    connectedBank: false,
-    addedGoals: false,
-    completedProfile: false
+  const handleSaveProfile = () => {
+    setUserInfo({ ...editedInfo });
+    setIsEditing(false);
+    toast({
+      title: "Profile Updated",
+      description: "Your profile information has been successfully updated.",
+    });
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      toast({
+        title: "Account Deletion",
+        description: "Your account deletion request has been processed.",
+        variant: "destructive"
+      });
+      // In a real app, this would handle account deletion
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
       
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             My Profile
           </h1>
           <p className="text-gray-600">
-            Manage your personal information and preferences
+            Manage your account information and view your financial summary
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Profile Column */}
-          <div className="md:col-span-1 space-y-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Profile Information */}
+          <div className="lg:col-span-1 space-y-6">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Profile Information
+                  {!isEditing && (
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Profile Image */}
+                <div className="flex flex-col items-center space-y-4">
+                  <Avatar className="w-24 h-24">
+                    <AvatarImage src={profileImage} alt="Profile" />
+                    <AvatarFallback>{userInfo.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  
                   <div className="relative">
-                    <div className="bg-gray-200 rounded-full w-24 h-24 flex items-center justify-center mb-4">
-                      {userData.profilePhoto ? (
-                        <img 
-                          src={userData.profilePhoto} 
-                          alt="Profile" 
-                          className="rounded-full w-24 h-24 object-cover"
-                        />
-                      ) : (
-                        <User className="h-12 w-12 text-gray-400" />
-                      )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Button variant="outline" size="sm">
+                      <Camera className="mr-2 h-4 w-4" />
+                      Change Photo
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Profile Details */}
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input
+                        id="name"
+                        value={editedInfo.name}
+                        onChange={(e) => setEditedInfo({...editedInfo, name: e.target.value})}
+                      />
                     </div>
-                    <button className="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full hover:bg-green-700">
-                      <Camera className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <h2 className="text-xl font-bold">{userData.name}</h2>
-                  <p className="text-gray-600">{userData.email}</p>
-                  
-                  <div className="mt-2">
-                    {userData.isPremium ? (
-                      <Badge className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
-                        Premium
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-gray-600">
-                        Free Plan
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="w-full mt-6">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Profile Completion</span>
-                      <span className="font-medium">{userData.completionPercentage}%</span>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={editedInfo.email}
+                        onChange={(e) => setEditedInfo({...editedInfo, email: e.target.value})}
+                      />
                     </div>
-                    <Progress value={userData.completionPercentage} className="h-2" />
+                    <div>
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        value={editedInfo.phone}
+                        onChange={(e) => setEditedInfo({...editedInfo, phone: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={editedInfo.location}
+                        onChange={(e) => setEditedInfo({...editedInfo, location: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button onClick={handleSaveProfile} className="bg-green-600 hover:bg-green-700">
+                        <Save className="mr-2 h-4 w-4" />
+                        Save
+                      </Button>
+                      <Button variant="outline" onClick={() => {
+                        setIsEditing(false);
+                        setEditedInfo({ ...userInfo });
+                      }}>
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600">Name</p>
+                      <p className="font-medium">{userInfo.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{userInfo.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{userInfo.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Location</p>
+                      <p className="font-medium">{userInfo.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Risk Profile</p>
+                      <Badge className="bg-blue-100 text-blue-800">{userInfo.riskProfile}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Member Since</p>
+                      <p className="font-medium">{new Date(userInfo.memberSince).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Profile Completion */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Completion</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Completion</span>
+                    <span>{profileCompletion}%</span>
+                  </div>
+                  <Progress value={profileCompletion} className="h-3" />
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center text-green-600">
+                      ✓ Basic information completed
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      ✓ Risk assessment completed
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      ✓ First investment made
+                    </div>
+                    <div className="flex items-center text-gray-500">
+                      • Add emergency contact
+                    </div>
+                    <div className="flex items-center text-gray-500">
+                      • Connect bank account
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    Complete Profile
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Account Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
+                <CardTitle>Account Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Full Name</p>
-                  <p className="font-medium">{userData.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{userData.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Member Since</p>
-                  <p className="font-medium">
-                    {new Date(userData.joinDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Risk Profile</p>
-                  <p className="font-medium">{userData.riskLevel} ({userData.riskScore}/40)</p>
-                </div>
+              <CardContent className="space-y-3">
+                <Link to="/settings">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </Button>
+                </Link>
                 
-                <Button className="w-full">
-                  Edit Information
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Danger Zone</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button variant="destructive" className="w-full">
+                <Link to="/premium">
+                  <Button variant="outline" className="w-full justify-start">
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    Upgrade to Premium
+                  </Button>
+                </Link>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleDeleteAccount}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete Account
                 </Button>
-                <p className="text-xs text-gray-500 text-center">
-                  This action cannot be undone. All your data will be permanently deleted.
-                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Main Content Column */}
-          <div className="md:col-span-2 space-y-6">
-            {/* Summary Cards */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    Investment Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Invested</span>
-                      <span className="font-bold">${userData.investmentSummary.totalInvested.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Monthly Returns</span>
-                      <span className="font-medium text-green-600">+{userData.investmentSummary.monthlyReturns}%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Portfolio Growth</span>
-                      <span className="font-medium text-green-600">+{userData.investmentSummary.portfolioGrowth}% YTD</span>
-                    </div>
-                    
-                    <Button variant="outline" className="w-full">
-                      View All Investments
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                    Debt Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Debt</span>
-                      <span className="font-bold">${userData.debtSummary.totalDebt.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Avg Interest Rate</span>
-                      <span className="font-medium text-red-600">{userData.debtSummary.avgInterestRate}%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Debt-to-Income</span>
-                      <span className="font-medium text-orange-600">34%</span>
-                    </div>
-                    
-                    <Button variant="outline" className="w-full">
-                      View Debt Details
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          {/* Portfolio Summary */}
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="investments">Investments</TabsTrigger>
+                <TabsTrigger value="debts">Debts</TabsTrigger>
+              </TabsList>
 
-            {/* Account Completion */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Completion</CardTitle>
-                <CardDescription>
-                  Complete these actions to get the most out of FinSage
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.riskQuiz ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.riskQuiz ? 'text-gray-800' : 'text-gray-600'}>Complete risk assessment quiz</span>
-                    {!completedActions.riskQuiz && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                  
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.addedInvestments ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.addedInvestments ? 'text-gray-800' : 'text-gray-600'}>Add your first investment</span>
-                    {!completedActions.addedInvestments && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                  
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.addedDebts ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.addedDebts ? 'text-gray-800' : 'text-gray-600'}>Track your debts</span>
-                    {!completedActions.addedDebts && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                  
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.usedCalculators ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.usedCalculators ? 'text-gray-800' : 'text-gray-600'}>Use financial calculators</span>
-                    {!completedActions.usedCalculators && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                  
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.setUpPreferences ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.setUpPreferences ? 'text-gray-800' : 'text-gray-600'}>Set up your preferences</span>
-                    {!completedActions.setUpPreferences && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                  
-                  <li className="flex items-center p-2 rounded-lg bg-gray-50">
-                    <div className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${completedActions.completedProfile ? 'bg-green-600' : 'bg-gray-300'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className={completedActions.completedProfile ? 'text-gray-800' : 'text-gray-600'}>Complete your profile</span>
-                    {!completedActions.completedProfile && <Button variant="ghost" size="sm" className="ml-auto">Do Now</Button>}
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+              <TabsContent value="overview" className="space-y-6">
+                {/* Key Metrics */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                        Investment Portfolio
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        ${portfolioSummary.totalInvestments.toLocaleString()}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">
+                        +${portfolioSummary.totalGains} ({portfolioSummary.monthlyReturns}%) this month
+                      </p>
+                      <Link to="/investments">
+                        <Button className="w-full bg-green-600 hover:bg-green-700">
+                          View Investment Details
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
 
-            {/* Premium Upgrade */}
-            {!userData.isPremium && (
-              <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    Upgrade to Premium
-                  </CardTitle>
-                  <CardDescription>
-                    Get access to advanced features and personalized insights
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-start">
-                        <div className="mr-2 text-green-600">✓</div>
-                        <span className="text-sm">AI-powered investment advice</span>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                        Debt Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-red-600 mb-2">
+                        ${portfolioSummary.totalDebt.toLocaleString()}
                       </div>
-                      <div className="flex items-start">
-                        <div className="mr-2 text-green-600">✓</div>
-                        <span className="text-sm">Advanced investment analytics</span>
+                      <p className="text-sm text-gray-600 mb-4">
+                        ${portfolioSummary.monthlyDebtPayment}/month minimum payment
+                      </p>
+                      <Link to="/debt">
+                        <Button variant="outline" className="w-full">
+                          Manage Debt Strategy
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Activity */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Investment Added</p>
+                          <p className="text-sm text-gray-600">S&P 500 ETF - $500</p>
+                        </div>
+                        <span className="text-xs text-gray-500">2 days ago</span>
                       </div>
-                      <div className="flex items-start">
-                        <div className="mr-2 text-green-600">✓</div>
-                        <span className="text-sm">Priority customer support</span>
+                      
+                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Risk Assessment</p>
+                          <p className="text-sm text-gray-600">Completed profile update</p>
+                        </div>
+                        <span className="text-xs text-gray-500">1 week ago</span>
                       </div>
-                      <div className="flex items-start">
-                        <div className="mr-2 text-green-600">✓</div>
-                        <span className="text-sm">Ad-free experience</span>
+                      
+                      <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Debt Strategy</p>
+                          <p className="text-sm text-gray-600">Updated to Avalanche method</p>
+                        </div>
+                        <span className="text-xs text-gray-500">2 weeks ago</span>
                       </div>
                     </div>
                     
-                    <Button className="w-full bg-green-600 hover:bg-green-700">
-                      Upgrade Now - $9.99/month
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    <Link to="/history">
+                      <Button variant="outline" className="w-full mt-4">
+                        View All Activity
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="investments" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Investment Breakdown</CardTitle>
+                    <CardDescription>
+                      Your current portfolio allocation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {portfolioSummary.investments.map((investment, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium">{investment.name}</span>
+                            <span className="text-sm text-gray-600">
+                              ${investment.amount.toLocaleString()} ({investment.allocation}%)
+                            </span>
+                          </div>
+                          <Progress value={investment.allocation} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total Portfolio Value</span>
+                        <span>${portfolioSummary.totalInvestments.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="debts" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Debt Breakdown</CardTitle>
+                    <CardDescription>
+                      Your current debt obligations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {portfolioSummary.debts.map((debt, index) => (
+                        <div key={index} className="p-4 border rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-medium">{debt.name}</h4>
+                            <span className="text-sm text-gray-500">{debt.rate}% APR</span>
+                          </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-lg font-bold">${debt.balance.toLocaleString()}</span>
+                            <span className="text-sm text-green-600">
+                              ${debt.payment}/month
+                            </span>
+                          </div>
+                          <Progress value={(debt.payment / debt.balance) * 100} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total Debt</span>
+                        <span>${portfolioSummary.totalDebt.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600 mt-1">
+                        <span>Monthly Payment</span>
+                        <span>${portfolioSummary.monthlyDebtPayment}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>

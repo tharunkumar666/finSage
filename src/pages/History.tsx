@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Calendar, Filter, TrendingUp, DollarSign, Target, AlertCircle } from 'lucide-react';
+import { Calendar, Filter, TrendingUp, DollarSign, Target, AlertCircle, Calculator } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +13,21 @@ const History = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterDate, setFilterDate] = useState('30');
 
-  // Mock history data
+  // Enhanced history data with calculator results
   const historyData = [
     {
       id: 1,
+      type: 'calculation',
+      action: 'SIP Calculator',
+      description: 'Calculated SIP for $1,000/month, 12% return, 10 years - Maturity: $230,039',
+      amount: null,
+      date: '2024-01-16',
+      icon: Calculator,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      id: 2,
       type: 'investment',
       action: 'Investment Added',
       description: 'Added $500 to S&P 500 ETF',
@@ -26,7 +38,18 @@ const History = () => {
       bgColor: 'bg-green-50'
     },
     {
-      id: 2,
+      id: 3,
+      type: 'calculation',
+      action: 'Debt Payoff Calculator',
+      description: 'Calculated payoff for $10,000 debt at 18% - 24 months to payoff',
+      amount: null,
+      date: '2024-01-12',
+      icon: Calculator,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
+    },
+    {
+      id: 4,
       type: 'quiz',
       action: 'Risk Assessment',
       description: 'Completed risk profiling quiz - Result: Moderate',
@@ -37,7 +60,7 @@ const History = () => {
       bgColor: 'bg-blue-50'
     },
     {
-      id: 3,
+      id: 5,
       type: 'debt',
       action: 'Debt Updated',
       description: 'Updated student loan payment strategy to Avalanche method',
@@ -48,7 +71,18 @@ const History = () => {
       bgColor: 'bg-orange-50'
     },
     {
-      id: 4,
+      id: 6,
+      type: 'calculation',
+      action: 'Step-up SIP Calculator',
+      description: 'Calculated step-up SIP with 10% annual increase - Additional benefit: $45,230',
+      amount: null,
+      date: '2024-01-07',
+      icon: Calculator,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    },
+    {
+      id: 7,
       type: 'investment',
       action: 'Investment Added',
       description: 'Added $250 to Bitcoin',
@@ -59,7 +93,7 @@ const History = () => {
       bgColor: 'bg-green-50'
     },
     {
-      id: 5,
+      id: 8,
       type: 'premium',
       action: 'Premium Upgrade',
       description: 'Upgraded to Premium plan for advanced analytics',
@@ -70,7 +104,7 @@ const History = () => {
       bgColor: 'bg-purple-50'
     },
     {
-      id: 6,
+      id: 9,
       type: 'investment',
       action: 'Investment Withdrawal',
       description: 'Withdrew $100 from cash reserves',
@@ -81,7 +115,7 @@ const History = () => {
       bgColor: 'bg-red-50'
     },
     {
-      id: 7,
+      id: 10,
       type: 'debt',
       action: 'Debt Added',
       description: 'Added new credit card debt - $1,200 at 18.9% APR',
@@ -90,17 +124,6 @@ const History = () => {
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-50'
-    },
-    {
-      id: 8,
-      type: 'investment',
-      action: 'Portfolio Review',
-      description: 'Monthly portfolio rebalancing completed',
-      amount: null,
-      date: '2023-12-15',
-      icon: Target,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
     }
   ];
 
@@ -115,7 +138,7 @@ const History = () => {
     return itemDate >= cutoffDate;
   });
 
-  const getActionBadge = (type: string) => {
+  const getActionBadge = (type) => {
     switch (type) {
       case 'investment':
         return <Badge className="bg-green-100 text-green-800">Investment</Badge>;
@@ -125,12 +148,14 @@ const History = () => {
         return <Badge className="bg-blue-100 text-blue-800">Assessment</Badge>;
       case 'premium':
         return <Badge className="bg-purple-100 text-purple-800">Premium</Badge>;
+      case 'calculation':
+        return <Badge className="bg-orange-100 text-orange-800">Calculator</Badge>;
       default:
         return <Badge className="bg-gray-100 text-gray-800">Other</Badge>;
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -139,7 +164,7 @@ const History = () => {
     });
   };
 
-  const getTimeAgo = (dateString: string) => {
+  const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
@@ -186,6 +211,7 @@ const History = () => {
                     <SelectItem value="all">All Activities</SelectItem>
                     <SelectItem value="investment">Investments</SelectItem>
                     <SelectItem value="debt">Debt Management</SelectItem>
+                    <SelectItem value="calculation">Calculations</SelectItem>
                     <SelectItem value="quiz">Risk Assessments</SelectItem>
                     <SelectItem value="premium">Premium Features</SelectItem>
                   </SelectContent>
@@ -210,6 +236,42 @@ const History = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Statistics */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {historyData.filter(item => item.type === 'investment').length}
+                </div>
+                <p className="text-sm text-gray-600">Investment Actions</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {historyData.filter(item => item.type === 'calculation').length}
+                </div>
+                <p className="text-sm text-gray-600">Calculations Made</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {historyData.filter(item => item.type === 'debt').length}
+                </div>
+                <p className="text-sm text-gray-600">Debt Activities</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Timeline */}
         <div className="space-y-6">
