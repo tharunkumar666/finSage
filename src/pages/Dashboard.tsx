@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle } from 'lucide-react';
@@ -11,7 +10,7 @@ import Footer from '@/components/layout/Footer';
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
-  // Mock data - will be replaced with real data from backend
+  // Mock data synchronized with Goals page
   const mockData = {
     totalInvestments: 15420,
     monthlyReturns: 8.5,
@@ -154,8 +153,17 @@ const Dashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Financial Goals</CardTitle>
-              <CardDescription>Track your progress towards your goals</CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Financial Goals</CardTitle>
+                  <CardDescription>Track your progress towards your goals</CardDescription>
+                </div>
+                <Link to="/goals">
+                  <Button variant="outline" size="sm">
+                    Manage Goals
+                  </Button>
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -191,10 +199,12 @@ const Dashboard = () => {
                 </Button>
               </Link>
               
-              <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                <Target className="h-6 w-6" />
-                <span>Set Goal</span>
-              </Button>
+              <Link to="/goals">
+                <Button variant="outline" className="h-20 w-full flex flex-col space-y-2">
+                  <Target className="h-6 w-6" />
+                  <span>Set Goal</span>
+                </Button>
+              </Link>
               
               <Link to="/debt">
                 <Button variant="outline" className="h-20 w-full flex flex-col space-y-2">

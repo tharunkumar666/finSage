@@ -32,7 +32,7 @@ const Index = () => {
             Take control of your finances, investments, and debt with personalized guidance.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link to="/quiz">
               <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg">
                 Start Risk Assessment
@@ -46,6 +46,10 @@ const Index = () => {
               </Button>
             </Link>
           </div>
+          
+          <Link to="/features" className="text-green-600 hover:text-green-700 underline">
+            Explore All Features →
+          </Link>
         </div>
       </section>
 
@@ -118,6 +122,14 @@ const Index = () => {
                 </p>
               </CardContent>
             </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link to="/features">
+              <Button size="lg" variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                View All Features
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
