@@ -22,7 +22,7 @@ const Register = () => {
     acceptTerms: false
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -178,7 +178,7 @@ const Register = () => {
               <Checkbox 
                 id="terms"
                 checked={formData.acceptTerms}
-                onCheckedChange={(checked) => setFormData({...formData, acceptTerms: checked})}
+                onCheckedChange={(checked) => setFormData({...formData, acceptTerms: !!checked})}
               />
               <Label htmlFor="terms" className="text-sm">
                 I agree to the{' '}

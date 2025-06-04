@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { User, Edit, Camera, TrendingUp, AlertCircle, Settings, Trash2, Save, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,16 +51,19 @@ const Profile = () => {
 
   const profileCompletion = 85;
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setProfileImage(e.target.result);
-        toast({
-          title: "Profile Image Updated",
-          description: "Your profile image has been successfully updated.",
-        });
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          setProfileImage(result);
+          toast({
+            title: "Profile Image Updated",
+            description: "Your profile image has been successfully updated.",
+          });
+        }
       };
       reader.readAsDataURL(file);
     }

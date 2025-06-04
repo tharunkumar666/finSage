@@ -19,7 +19,7 @@ const Login = () => {
     rememberMe: false
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -110,7 +110,7 @@ const Login = () => {
                 <Checkbox 
                   id="remember"
                   checked={formData.rememberMe}
-                  onCheckedChange={(checked) => setFormData({...formData, rememberMe: checked})}
+                  onCheckedChange={(checked) => setFormData({...formData, rememberMe: !!checked})}
                 />
                 <Label htmlFor="remember" className="text-sm">Remember me</Label>
               </div>
