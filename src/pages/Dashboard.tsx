@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,11 @@ const Dashboard = () => {
     debts: [
       { name: 'Student Loan', amount: 25000, rate: 6.8, payment: 280 },
       { name: 'Credit Card', amount: 1200, rate: 18.9, payment: 50 }
+    ],
+    goals: [
+      { name: 'Emergency Fund', target: 10000, current: 3500, progress: 35 },
+      { name: 'House Down Payment', target: 50000, current: 12000, progress: 24 },
+      { name: 'Retirement Fund', target: 100000, current: 15420, progress: 15 }
     ]
   };
 
@@ -104,7 +110,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Portfolio Allocation */}
+        {/* Portfolio Allocation and Goals */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           <Card>
             <CardHeader>
@@ -148,6 +154,69 @@ const Dashboard = () => {
 
           <Card>
             <CardHeader>
+              <CardTitle>Financial Goals</CardTitle>
+              <CardDescription>Track your progress towards your goals</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {mockData.goals.map((goal, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium text-sm">{goal.name}</h4>
+                      <span className="text-sm text-gray-500">
+                        ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
+                      </span>
+                    </div>
+                    <Progress value={goal.progress} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">{goal.progress}% complete</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common tasks to manage your finances</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link to="/investments">
+                <Button className="h-20 w-full bg-green-600 hover:bg-green-700 flex flex-col space-y-2">
+                  <PlusCircle className="h-6 w-6" />
+                  <span>Add Investment</span>
+                </Button>
+              </Link>
+              
+              <Button variant="outline" className="h-20 flex flex-col space-y-2">
+                <Target className="h-6 w-6" />
+                <span>Set Goal</span>
+              </Button>
+              
+              <Link to="/debt">
+                <Button variant="outline" className="h-20 w-full flex flex-col space-y-2">
+                  <AlertCircle className="h-6 w-6" />
+                  <span>Manage Debt</span>
+                </Button>
+              </Link>
+              
+              <Link to="/reports">
+                <Button variant="outline" className="h-20 w-full flex flex-col space-y-2">
+                  <TrendingUp className="h-6 w-6" />
+                  <span>View Reports</span>
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity and Debt Overview */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>Your latest transactions</CardDescription>
             </CardHeader>
@@ -167,65 +236,33 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Debt Overview</CardTitle>
+              <CardDescription>Track your debt repayment progress</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {mockData.debts.map((debt, index) => (
+                  <div key={index} className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium">{debt.name}</h4>
+                      <span className="text-sm text-gray-500">{debt.rate}% APR</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold">${debt.amount.toLocaleString()}</span>
+                      <span className="text-sm text-green-600">
+                        ${debt.payment}/month
+                      </span>
+                    </div>
+                    <Progress value={(debt.payment / debt.amount) * 100} className="h-2 mt-2" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Quick Actions */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks to manage your finances</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button className="h-20 bg-green-600 hover:bg-green-700 flex flex-col space-y-2">
-                <PlusCircle className="h-6 w-6" />
-                <span>Add Investment</span>
-              </Button>
-              
-              <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                <Target className="h-6 w-6" />
-                <span>Set Goal</span>
-              </Button>
-              
-              <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                <AlertCircle className="h-6 w-6" />
-                <span>Manage Debt</span>
-              </Button>
-              
-              <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                <TrendingUp className="h-6 w-6" />
-                <span>View Reports</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Debt Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Debt Overview</CardTitle>
-            <CardDescription>Track your debt repayment progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockData.debts.map((debt, index) => (
-                <div key={index} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium">{debt.name}</h4>
-                    <span className="text-sm text-gray-500">{debt.rate}% APR</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">${debt.amount.toLocaleString()}</span>
-                    <span className="text-sm text-green-600">
-                      ${debt.payment}/month
-                    </span>
-                  </div>
-                  <Progress value={(debt.payment / debt.amount) * 100} className="h-2 mt-2" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <Footer />
