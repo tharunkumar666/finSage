@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Calendar, Filter, TrendingUp, DollarSign, Target, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -204,7 +203,7 @@ const History = () => {
                     <SelectItem value="30">Last 30 days</SelectItem>
                     <SelectItem value="90">Last 3 months</SelectItem>
                     <SelectItem value="365">Last year</SelectItem>
-                    <SelectItem value="999999">All time</Select>
+                    <SelectItem value="999999">All time</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
