@@ -168,9 +168,9 @@ const InvestmentFilter = ({ isOpen, onOpenChange, onApplyFilters, onClearFilters
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All</SelectItem>
-                <SelectItem value="small">Small Cap (< $2B)</SelectItem>
+                <SelectItem value="small">Small Cap (&lt; $2B)</SelectItem>
                 <SelectItem value="mid">Mid Cap ($2B - $10B)</SelectItem>
-                <SelectItem value="large">Large Cap (> $10B)</SelectItem>
+                <SelectItem value="large">Large Cap (&gt; $10B)</SelectItem>
               </SelectContent>
             </Select>
           </div>
