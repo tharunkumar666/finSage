@@ -18,6 +18,10 @@ import Settings from "./pages/Settings";
 import Premium from "./pages/Premium";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Features from "./pages/Features";
+import Goals from "./pages/Goals";
 
 const queryClient = new QueryClient();
 
