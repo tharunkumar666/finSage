@@ -1,150 +1,223 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, TrendingUp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, User, LogOut, Settings, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
-interface HeaderProps {
-  isLoggedIn: boolean;
-  setIsLoggedIn: (value: boolean) => void;
-}
+const Header = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-const Header = ({ isLoggedIn, setIsLoggedIn }: HeaderProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navigation = isLoggedIn ? [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Investments', href: '/investments' },
-    { name: 'Debt Advisor', href: '/debt' },
-    { name: 'Calculators', href: '/calculators' },
-    { name: 'History', href: '/history' },
-  ] : [
-    { name: 'Features', href: '/#features' },
+  const navigation = [
+    { name: 'Features', href: '/features' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
 
+  const userNavigation = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Investments', href: '/investments' },
+    { name: 'Debt Advisor', href: '/debt' },
+    { name: 'Calculators', href: '/calculators' },
+    { name: 'Goals', href: '/goals' },
+    { name: 'Reports', href: '/reports' },
+    { name: 'History', href: '/history' },
+  ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-6">
+    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 p-2 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">
-              Fin<span className="text-green-600">Sage</span>
-            </span>
-          </Link>
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <DollarSign className="h-8 w-8 text-green-600" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">FinSage</span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="text-gray-700 hover:text-green-600 font-medium transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Link to="/profile">
-                  <Button variant="ghost" className="text-gray-700">
-                    Profile
-                  </Button>
-                </Link>
-                <Button 
-                  onClick={() => setIsLoggedIn(false)}
-                  variant="outline" 
-                  className="border-green-600 text-green-600 hover:bg-green-50"
-                >
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/auth/login">
-                  <Button variant="ghost" className="text-gray-700">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth/register">
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-700 hover:text-green-600"
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-3">
-              {navigation.map((item) => (
+            {user ? (
+              userNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="text-gray-700 hover:text-green-600 font-medium px-2 py-1"
-                  onClick={() => setIsMenuOpen(false)}
+                  className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
                   {item.name}
                 </Link>
-              ))}
-              
-              <div className="pt-4 border-t border-gray-200 space-y-2">
-                {isLoggedIn ? (
-                  <>
-                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        Profile
-                      </Button>
+              ))
+            ) : (
+              navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  {item.name}
+                </Link>
+              ))
+            )}
+          </nav>
+
+          {/* Right side items */}
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.name || user.email} />
+                      <AvatarFallback>
+                        {user.user_metadata?.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.user_metadata?.name || 'User'}</p>
+                      <p className="w-[200px] truncate text-sm text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
                     </Link>
-                    <Button 
-                      onClick={() => {
-                        setIsLoggedIn(false);
-                        setIsMenuOpen(false);
-                      }}
-                      variant="outline" 
-                      className="w-full"
-                    >
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/auth/login" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        Sign In
-                      </Button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
                     </Link>
-                    <Link to="/auth/register" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Get Started
-                      </Button>
-                    </Link>
-                  </>
-                )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex items-center space-x-4">
+                <Link to="/auth/login">
+                  <Button variant="outline">Sign In</Button>
+                </Link>
+                <Link to="/auth/register">
+                  <Button className="bg-green-600 hover:bg-green-700">Get Started</Button>
+                </Link>
               </div>
-            </nav>
+            )}
+
+            {/* Mobile menu button */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="md:hidden" size="sm">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <nav className="flex flex-col gap-4">
+                  {user ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.user_metadata?.avatar_url} alt={user.user_metadata?.name || user.email} />
+                          <AvatarFallback>
+                            {user.user_metadata?.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{user.user_metadata?.name || 'User'}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      {userNavigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                      <div className="border-t pt-4">
+                        <Link
+                          to="/profile"
+                          className="flex items-center text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                        <Link
+                          to="/settings"
+                          className="flex items-center text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            handleSignOut();
+                            setIsOpen(false);
+                          }}
+                          className="flex items-center w-full justify-start text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign out
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {navigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                      <div className="border-t pt-4 space-y-2">
+                        <Link to="/auth/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full">Sign In</Button>
+                        </Link>
+                        <Link to="/auth/register" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full bg-green-600 hover:bg-green-700">Get Started</Button>
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

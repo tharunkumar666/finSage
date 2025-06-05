@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,34 +24,26 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      if (formData.email && formData.password) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to FinSage!",
-        });
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Please check your email and password.",
-          variant: "destructive"
-        });
-      }
-      setIsLoading(false);
-    }, 1000);
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (!error) {
+      navigate('/dashboard');
+    }
+    
+    setIsLoading(false);
   };
 
-  const handleGoogleLogin = () => {
-    toast({
-      title: "Google Login",
-      description: "Google authentication coming soon!",
-    });
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      console.error('Google login error:', error);
+    }
+    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
@@ -132,7 +125,7 @@ const Login = () => {
               </div>
             </div>
             
-            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin}>
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -151,12 +144,12 @@ const Login = () => {
                   fill="#EA4335"
                 />
               </svg>
-              Sign in with Google
+              {isLoading ? "Connecting..." : "Sign in with Google"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Don't have an account?{' '}
               <Link to="/auth/register" className="text-blue-600 hover:underline">
                 Sign up

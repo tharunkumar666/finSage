@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { signUp, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,67 +20,49 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    acceptTerms: false
+    agreeToTerms: false
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      return;
+    }
+    
+    if (!formData.agreeToTerms) {
+      return;
+    }
+
     setIsLoading(true);
 
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
+    const { error } = await signUp(formData.email, formData.password, {
+      name: formData.name
+    });
+    
+    if (!error) {
+      navigate('/profile-completion');
     }
-
-    if (!formData.acceptTerms) {
-      toast({
-        title: "Terms Required",
-        description: "Please accept the terms and conditions.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    // Simulate registration process
-    setTimeout(() => {
-      if (formData.name && formData.email && formData.password) {
-        toast({
-          title: "Registration Successful",
-          description: "Welcome to FinSage! Please take the risk quiz to get started.",
-        });
-        navigate('/quiz');
-      } else {
-        toast({
-          title: "Registration Failed",
-          description: "Please fill in all required fields.",
-          variant: "destructive"
-        });
-      }
-      setIsLoading(false);
-    }, 1000);
+    
+    setIsLoading(false);
   };
 
-  const handleGoogleSignup = () => {
-    toast({
-      title: "Google Signup",
-      description: "Google authentication coming soon!",
-    });
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      console.error('Google signup error:', error);
+    }
+    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
           <CardDescription>
-            Join FinSage and start your financial journey
+            Join FinSage and take control of your finances
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -99,7 +82,7 @@ const Register = () => {
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -144,7 +127,7 @@ const Register = () => {
                 </Button>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
@@ -177,23 +160,24 @@ const Register = () => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="terms"
-                checked={formData.acceptTerms}
-                onCheckedChange={(checked) => setFormData({...formData, acceptTerms: !!checked})}
+                checked={formData.agreeToTerms}
+                onCheckedChange={(checked) => setFormData({...formData, agreeToTerms: !!checked})}
+                required
               />
               <Label htmlFor="terms" className="text-sm">
                 I agree to the{' '}
                 <Link to="/terms" className="text-blue-600 hover:underline">
                   Terms of Service
-                </Link>
-                {' '}and{' '}
+                </Link>{' '}
+                and{' '}
                 <Link to="/privacy" className="text-blue-600 hover:underline">
                   Privacy Policy
                 </Link>
               </Label>
             </div>
             
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create Account"}
+            <Button type="submit" className="w-full" disabled={isLoading || formData.password !== formData.confirmPassword || !formData.agreeToTerms}>
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
             
             <div className="relative">
@@ -205,7 +189,7 @@ const Register = () => {
               </div>
             </div>
             
-            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignup}>
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignUp} disabled={isLoading}>
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -224,12 +208,12 @@ const Register = () => {
                   fill="#EA4335"
                 />
               </svg>
-              Sign up with Google
+              {isLoading ? "Connecting..." : "Sign up with Google"}
             </Button>
           </form>
           
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Already have an account?{' '}
               <Link to="/auth/login" className="text-blue-600 hover:underline">
                 Sign in
