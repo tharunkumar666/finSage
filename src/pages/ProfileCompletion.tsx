@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Phone, MapPin, Calendar, Users, CreditCard, Check, ArrowRight } from 'lucide-react';
@@ -68,8 +67,8 @@ const ProfileCompletion = () => {
       if (profile) {
         setProfileData({
           name: profile.name || '',
-          phone: profile.phone || '',
-          dateOfBirth: profile.date_of_birth || '',
+          phone: '', // Profile table doesn't have phone field
+          dateOfBirth: '', // Profile table doesn't have date_of_birth field
           country: profile.country || '',
           currency: profile.currency || 'USD'
         });
@@ -124,8 +123,6 @@ const ProfileCompletion = () => {
         .upsert({
           user_id: user.id,
           name: profileData.name,
-          phone: profileData.phone,
-          date_of_birth: profileData.dateOfBirth,
           country: profileData.country,
           currency: profileData.currency
         });

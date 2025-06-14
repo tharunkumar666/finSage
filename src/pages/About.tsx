@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Users, Target, Shield, TrendingUp, Award, Heart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,8 +5,6 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const About = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const teamMembers = [
     {
       name: "Sarah Johnson",
@@ -31,7 +28,7 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero Section */}

@@ -174,7 +174,7 @@ const Register = () => {
               <Checkbox 
                 id="terms" 
                 checked={acceptTerms}
-                onCheckedChange={setAcceptTerms}
+                onCheckedChange={(checked) => setAcceptTerms(checked === true)}
               />
               <Label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-300">
                 I accept the{' '}
