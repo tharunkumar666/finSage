@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Check, Star, Zap, TrendingUp, Shield, Headphones } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,6 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Premium = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   const features = [
@@ -87,7 +85,7 @@ const Premium = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Hero Section */}

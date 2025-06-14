@@ -1,574 +1,356 @@
 
 import { useState } from 'react';
-import { Plus, TrendingDown, Calculator, Target, Edit, Trash2, Save, X } from 'lucide-react';
+import { AlertCircle, TrendingDown, Calculator, Target } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const DebtAdvisor = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [strategy, setStrategy] = useState('snowball');
   const [debts, setDebts] = useState([
     {
       id: 1,
-      name: 'Student Loan',
-      balance: 25000,
-      rate: 6.8,
-      minPayment: 280,
-      type: 'Student Loan'
+      name: 'Credit Card A',
+      balance: 5000,
+      minPayment: 150,
+      interestRate: 18.99,
+      type: 'credit_card'
     },
     {
       id: 2,
-      name: 'Credit Card',
-      balance: 3500,
-      rate: 18.9,
-      minPayment: 105,
-      type: 'Credit Card'
+      name: 'Student Loan',
+      balance: 25000,
+      minPayment: 280,
+      interestRate: 6.8,
+      type: 'student_loan'
     },
     {
       id: 3,
-      name: 'Car Loan',
-      balance: 12000,
-      rate: 5.2,
-      minPayment: 350,
-      type: 'Auto Loan'
+      name: 'Credit Card B',
+      balance: 3200,
+      minPayment: 100,
+      interestRate: 21.99,
+      type: 'credit_card'
     }
   ]);
 
-  const [strategy, setStrategy] = useState('avalanche');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingDebt, setEditingDebt] = useState(null);
+  const [extraPayment, setExtraPayment] = useState(200);
   const [newDebt, setNewDebt] = useState({
     name: '',
-    balance: '',
-    rate: '',
-    minPayment: '',
-    type: 'Credit Card'
+    balance: 0,
+    minPayment: 0,
+    interestRate: 0,
+    type: 'credit_card'
   });
 
-  // Debt Calculator State
-  const [calculatorInputs, setCalculatorInputs] = useState({
-    principal: '10000',
-    rate: '18',
-    payment: '500'
-  });
-
-  const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
-  const totalMinPayment = debts.reduce((sum, debt) => sum + debt.minPayment, 0);
-  const weightedAvgRate = debts.reduce((sum, debt) => sum + (debt.rate * debt.balance), 0) / totalDebt;
-
-  const sortedDebts = [...debts].sort((a, b) => {
-    if (strategy === 'avalanche') {
-      return b.rate - a.rate;
-    } else {
-      return a.balance - b.balance;
-    }
-  });
-
-  const handleAddDebt = () => {
-    if (newDebt.name && newDebt.balance && newDebt.rate && newDebt.minPayment) {
-      const debt = {
-        id: Date.now(),
-        name: newDebt.name,
-        balance: parseFloat(newDebt.balance),
-        rate: parseFloat(newDebt.rate),
-        minPayment: parseFloat(newDebt.minPayment),
-        type: newDebt.type
-      };
-      setDebts([...debts, debt]);
-      setNewDebt({ name: '', balance: '', rate: '', minPayment: '', type: 'Credit Card' });
-      setShowAddForm(false);
+  const addDebt = () => {
+    if (newDebt.name && newDebt.balance > 0) {
+      setDebts([...debts, { ...newDebt, id: Date.now() }]);
+      setNewDebt({ name: '', balance: 0, minPayment: 0, interestRate: 0, type: 'credit_card' });
     }
   };
 
-  const handleEditDebt = (debt) => {
-    setEditingDebt({
-      ...debt,
-      balance: debt.balance.toString(),
-      rate: debt.rate.toString(),
-      minPayment: debt.minPayment.toString()
-    });
-  };
-
-  const handleSaveEdit = () => {
-    if (editingDebt) {
-      setDebts(debts.map(debt => 
-        debt.id === editingDebt.id 
-          ? {
-              ...editingDebt,
-              balance: parseFloat(editingDebt.balance),
-              rate: parseFloat(editingDebt.rate),
-              minPayment: parseFloat(editingDebt.minPayment)
-            }
-          : debt
-      ));
-      setEditingDebt(null);
-    }
-  };
-
-  const handleDeleteDebt = (id) => {
+  const removeDebt = (id: number) => {
     setDebts(debts.filter(debt => debt.id !== id));
   };
 
-  const calculatePayoffTime = (balance, rate, payment) => {
-    const monthlyRate = rate / 100 / 12;
-    if (monthlyRate === 0) return Math.ceil(balance / payment);
-    const months = -Math.log(1 - (balance * monthlyRate) / payment) / Math.log(1 + monthlyRate);
-    return Math.ceil(months);
+  const calculatePayoffPlan = () => {
+    const sortedDebts = [...debts].sort((a, b) => {
+      if (strategy === 'snowball') {
+        return a.balance - b.balance; // Smallest balance first
+      } else {
+        return b.interestRate - a.interestRate; // Highest interest rate first
+      }
+    });
+
+    let totalMonthsToPayoff = 0;
+    let totalInterest = 0;
+    let remainingDebts = [...sortedDebts];
+    let currentExtraPayment = extraPayment;
+
+    const payoffPlan = remainingDebts.map((debt, index) => {
+      const monthlyPayment = debt.minPayment + (index === 0 ? currentExtraPayment : 0);
+      const monthsToPayoff = Math.ceil(Math.log(1 + (debt.balance * (debt.interestRate / 100 / 12)) / monthlyPayment) / Math.log(1 + debt.interestRate / 100 / 12));
+      const totalPayment = monthlyPayment * monthsToPayoff;
+      const interestPaid = totalPayment - debt.balance;
+
+      totalMonthsToPayoff = Math.max(totalMonthsToPayoff, monthsToPayoff);
+      totalInterest += interestPaid;
+
+      // Add this debt's minimum payment to extra payment for next debt
+      if (index < remainingDebts.length - 1) {
+        currentExtraPayment += debt.minPayment;
+      }
+
+      return {
+        ...debt,
+        monthsToPayoff,
+        totalPayment: Math.round(totalPayment),
+        interestPaid: Math.round(interestPaid),
+        monthlyPayment: Math.round(monthlyPayment)
+      };
+    });
+
+    return {
+      payoffPlan,
+      totalMonthsToPayoff,
+      totalYearsToPayoff: Math.round(totalMonthsToPayoff / 12 * 10) / 10,
+      totalInterest: Math.round(totalInterest),
+      totalDebt: debts.reduce((sum, debt) => sum + debt.balance, 0)
+    };
   };
 
-  const calculateDebtPayoff = () => {
-    const principal = parseFloat(calculatorInputs.principal);
-    const monthlyRate = parseFloat(calculatorInputs.rate) / 100 / 12;
-    const payment = parseFloat(calculatorInputs.payment);
-    
-    if (monthlyRate === 0) {
-      return Math.ceil(principal / payment);
-    }
-    
-    const months = -Math.log(1 - (principal * monthlyRate) / payment) / Math.log(1 + monthlyRate);
-    return Math.ceil(months);
-  };
-
-  const payoffMonths = calculateDebtPayoff();
-  const payoffYears = Math.floor(payoffMonths / 12);
-  const remainingMonths = payoffMonths % 12;
+  const results = calculatePayoffPlan();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50">
+      <Header />
       
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+            <AlertCircle className="h-8 w-8 text-red-600" />
             Debt Advisor
           </h1>
-          <p className="text-gray-600">
-            Manage and optimize your debt repayment strategy
-          </p>
+          <p className="text-gray-600">Create a strategic plan to eliminate your debt faster</p>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Debt</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalDebt.toLocaleString()}</div>
-              <p className="text-xs text-gray-600">
-                Across {debts.length} accounts
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Payments</CardTitle>
-              <Calculator className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalMinPayment.toLocaleString()}</div>
-              <p className="text-xs text-gray-600">
-                Minimum required
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Interest Rate</CardTitle>
-              <Target className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{weightedAvgRate.toFixed(1)}%</div>
-              <p className="text-xs text-gray-600">
-                Weighted average
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="strategy">Strategy</TabsTrigger>
-            <TabsTrigger value="calculator">Payoff Calculator</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Your Debts</h2>
-              <Button 
-                onClick={() => setShowAddForm(true)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Debt
-              </Button>
-            </div>
-
-            {showAddForm && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Debt</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="debt-name">Debt Name</Label>
-                      <Input
-                        id="debt-name"
-                        value={newDebt.name}
-                        onChange={(e) => setNewDebt({...newDebt, name: e.target.value})}
-                        placeholder="e.g., Chase Credit Card"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="debt-type">Type</Label>
-                      <Select value={newDebt.type} onValueChange={(value) => setNewDebt({...newDebt, type: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Credit Card">Credit Card</SelectItem>
-                          <SelectItem value="Student Loan">Student Loan</SelectItem>
-                          <SelectItem value="Auto Loan">Auto Loan</SelectItem>
-                          <SelectItem value="Personal Loan">Personal Loan</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="balance">Balance</Label>
-                      <Input
-                        id="balance"
-                        type="number"
-                        value={newDebt.balance}
-                        onChange={(e) => setNewDebt({...newDebt, balance: e.target.value})}
-                        placeholder="25000"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="rate">Interest Rate (%)</Label>
-                      <Input
-                        id="rate"
-                        type="number"
-                        step="0.1"
-                        value={newDebt.rate}
-                        onChange={(e) => setNewDebt({...newDebt, rate: e.target.value})}
-                        placeholder="6.8"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="payment">Min Payment</Label>
-                      <Input
-                        id="payment"
-                        type="number"
-                        value={newDebt.minPayment}
-                        onChange={(e) => setNewDebt({...newDebt, minPayment: e.target.value})}
-                        placeholder="280"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button onClick={handleAddDebt} className="bg-green-600 hover:bg-green-700">
-                      Add Debt
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="space-y-4">
-              {debts.map((debt) => (
-                <Card key={debt.id}>
-                  <CardContent className="p-6">
-                    {editingDebt && editingDebt.id === debt.id ? (
-                      <div className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Debt Name</Label>
-                            <Input
-                              value={editingDebt.name}
-                              onChange={(e) => setEditingDebt({...editingDebt, name: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label>Type</Label>
-                            <Select value={editingDebt.type} onValueChange={(value) => setEditingDebt({...editingDebt, type: value})}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Credit Card">Credit Card</SelectItem>
-                                <SelectItem value="Student Loan">Student Loan</SelectItem>
-                                <SelectItem value="Auto Loan">Auto Loan</SelectItem>
-                                <SelectItem value="Personal Loan">Personal Loan</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-3 gap-4">
-                          <div>
-                            <Label>Balance</Label>
-                            <Input
-                              type="number"
-                              value={editingDebt.balance}
-                              onChange={(e) => setEditingDebt({...editingDebt, balance: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label>Interest Rate (%)</Label>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              value={editingDebt.rate}
-                              onChange={(e) => setEditingDebt({...editingDebt, rate: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label>Min Payment</Label>
-                            <Input
-                              type="number"
-                              value={editingDebt.minPayment}
-                              onChange={(e) => setEditingDebt({...editingDebt, minPayment: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">
-                            <Save className="mr-2 h-4 w-4" />
-                            Save
-                          </Button>
-                          <Button variant="outline" onClick={() => setEditingDebt(null)}>
-                            <X className="mr-2 h-4 w-4" />
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold">{debt.name}</h3>
-                            <p className="text-gray-600">{debt.type}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold">${debt.balance.toLocaleString()}</p>
-                            <p className="text-sm text-gray-600">{debt.rate}% APR</p>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <div className="flex justify-between text-sm">
-                            <span>Monthly Payment: ${debt.minPayment}</span>
-                            <span>Payoff Time: {calculatePayoffTime(debt.balance, debt.rate, debt.minPayment)} months</span>
-                          </div>
-                          <Progress value={(debt.minPayment / debt.balance) * 100} className="h-2" />
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditDebt(debt)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteDebt(debt.id)} className="text-red-600 hover:text-red-700">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Strategy Tab */}
-          <TabsContent value="strategy" className="space-y-6">
-            <Card>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Strategy Selection */}
+          <div className="lg:col-span-1">
+            <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Debt Repayment Strategy</CardTitle>
-                <CardDescription>
-                  Choose the strategy that works best for your situation
-                </CardDescription>
+                <CardTitle>Payoff Strategy</CardTitle>
+                <CardDescription>Choose your debt elimination approach</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${strategy === 'avalanche' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
-                       onClick={() => setStrategy('avalanche')}>
-                    <h3 className="text-lg font-semibold mb-2">Debt Avalanche</h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Pay minimums on all debts, then put extra money toward the highest interest rate debt first.
-                    </p>
-                    <div className="text-sm font-medium text-green-600">
-                      ✓ Saves more money on interest
-                    </div>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <button
+                      onClick={() => setStrategy('snowball')}
+                      className={`w-full p-4 rounded-lg border-2 transition-colors ${
+                        strategy === 'snowball' 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <h3 className="font-semibold mb-2">Debt Snowball</h3>
+                      <p className="text-sm text-gray-600">Pay off smallest debts first for quick wins</p>
+                    </button>
                   </div>
                   
-                  <div className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${strategy === 'snowball' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
-                       onClick={() => setStrategy('snowball')}>
-                    <h3 className="text-lg font-semibold mb-2">Debt Snowball</h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Pay minimums on all debts, then put extra money toward the smallest balance first.
-                    </p>
-                    <div className="text-sm font-medium text-blue-600">
-                      ✓ Provides psychological wins
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">
-                    Recommended Payoff Order ({strategy === 'avalanche' ? 'Avalanche' : 'Snowball'})
-                  </h3>
-                  <div className="space-y-3">
-                    {sortedDebts.map((debt, index) => (
-                      <div key={debt.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium">{debt.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            ${debt.balance.toLocaleString()} at {debt.rate}% APR
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">${debt.minPayment}/month</p>
-                          <p className="text-xs text-gray-600">min payment</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div>
+                    <button
+                      onClick={() => setStrategy('avalanche')}
+                      className={`w-full p-4 rounded-lg border-2 transition-colors ${
+                        strategy === 'avalanche' 
+                          ? 'border-green-500 bg-green-50' 
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <h3 className="font-semibold mb-2">Debt Avalanche</h3>
+                      <p className="text-sm text-gray-600">Pay off highest interest debts first to save money</p>
+                    </button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Debt Payoff Calculator Tab */}
-          <TabsContent value="calculator" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Extra Payment</CardTitle>
+                <CardDescription>Additional amount you can pay monthly</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="extraPayment">Extra Monthly Payment ($)</Label>
+                  <Input
+                    id="extraPayment"
+                    type="number"
+                    value={extraPayment}
+                    onChange={(e) => setExtraPayment(parseInt(e.target.value) || 0)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Add New Debt */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Debt</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="debtName">Debt Name</Label>
+                  <Input
+                    id="debtName"
+                    value={newDebt.name}
+                    onChange={(e) => setNewDebt({...newDebt, name: e.target.value})}
+                    placeholder="e.g., Credit Card"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="balance">Balance ($)</Label>
+                  <Input
+                    id="balance"
+                    type="number"
+                    value={newDebt.balance || ''}
+                    onChange={(e) => setNewDebt({...newDebt, balance: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="minPayment">Minimum Payment ($)</Label>
+                  <Input
+                    id="minPayment"
+                    type="number"
+                    value={newDebt.minPayment || ''}
+                    onChange={(e) => setNewDebt({...newDebt, minPayment: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="interestRate">Interest Rate (%)</Label>
+                  <Input
+                    id="interestRate"
+                    type="number"
+                    step="0.1"
+                    value={newDebt.interestRate || ''}
+                    onChange={(e) => setNewDebt({...newDebt, interestRate: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="debtType">Debt Type</Label>
+                  <Select value={newDebt.type} onValueChange={(value) => setNewDebt({...newDebt, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="credit_card">Credit Card</SelectItem>
+                      <SelectItem value="student_loan">Student Loan</SelectItem>
+                      <SelectItem value="personal_loan">Personal Loan</SelectItem>
+                      <SelectItem value="auto_loan">Auto Loan</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button onClick={addDebt} className="w-full">Add Debt</Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Debt List and Results */}
+          <div className="lg:col-span-2">
+            {/* Summary Cards */}
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calculator className="h-5 w-5 text-red-600" />
-                    Debt Payoff Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    Calculate how long it will take to pay off your debt
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="calc-principal">Total Debt Amount ($)</Label>
-                    <Input
-                      id="calc-principal"
-                      type="number"
-                      value={calculatorInputs.principal}
-                      onChange={(e) => setCalculatorInputs({...calculatorInputs, principal: e.target.value})}
-                      placeholder="10000"
-                    />
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Debt</p>
+                      <p className="text-2xl font-bold text-red-600">${results.totalDebt.toLocaleString()}</p>
+                    </div>
+                    <AlertCircle className="h-8 w-8 text-red-600" />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="calc-rate">Annual Interest Rate (%)</Label>
-                    <Input
-                      id="calc-rate"
-                      type="number"
-                      step="0.1"
-                      value={calculatorInputs.rate}
-                      onChange={(e) => setCalculatorInputs({...calculatorInputs, rate: e.target.value})}
-                      placeholder="18"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="calc-payment">Monthly Payment ($)</Label>
-                    <Input
-                      id="calc-payment"
-                      type="number"
-                      value={calculatorInputs.payment}
-                      onChange={(e) => setCalculatorInputs({...calculatorInputs, payment: e.target.value})}
-                      placeholder="500"
-                    />
-                  </div>
-                  
-                  <Button className="w-full bg-red-600 hover:bg-red-700">
-                    Calculate Payoff Time
-                  </Button>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Payoff Timeline</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="text-center p-6 bg-gradient-to-r from-red-100 to-orange-100 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-2">Time to Pay Off</p>
-                    <p className="text-3xl font-bold text-gray-900">
-                      {payoffYears > 0 && `${payoffYears} years `}
-                      {remainingMonths} months
-                    </p>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Payoff Time</p>
+                      <p className="text-2xl font-bold text-blue-600">{results.totalYearsToPayoff} years</p>
+                    </div>
+                    <Target className="h-8 w-8 text-blue-600" />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <p className="text-sm text-red-600 font-medium">Total Interest</p>
-                      <p className="text-lg font-bold text-red-800">
-                        ${((parseFloat(calculatorInputs.payment) * payoffMonths) - parseFloat(calculatorInputs.principal)).toLocaleString()}
-                      </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Interest</p>
+                      <p className="text-2xl font-bold text-orange-600">${results.totalInterest.toLocaleString()}</p>
                     </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-600 font-medium">Total Payments</p>
-                      <p className="text-lg font-bold text-blue-800">
-                        ${(parseFloat(calculatorInputs.payment) * payoffMonths).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Principal Amount</span>
-                      <span>${parseFloat(calculatorInputs.principal).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Interest Rate</span>
-                      <span>{calculatorInputs.rate}% p.a.</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Monthly Payment</span>
-                      <span>${calculatorInputs.payment}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Total Months</span>
-                      <span>{payoffMonths} months</span>
-                    </div>
+                    <TrendingDown className="h-8 w-8 text-orange-600" />
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-        </Tabs>
+
+            {/* Payoff Plan */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Debt Payoff Plan</CardTitle>
+                <CardDescription>
+                  Using the {strategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'} method
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {results.payoffPlan.map((debt, index) => (
+                    <div key={debt.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-semibold">{debt.name}</h3>
+                          <p className="text-sm text-gray-600">
+                            Order: #{index + 1} • {debt.interestRate}% APR
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeDebt(debt.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">Balance</p>
+                          <p className="font-semibold">${debt.balance.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Monthly Payment</p>
+                          <p className="font-semibold">${debt.monthlyPayment.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Payoff Time</p>
+                          <p className="font-semibold">{debt.monthsToPayoff} months</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Interest Paid</p>
+                          <p className="font-semibold">${debt.interestPaid.toLocaleString()}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <Progress 
+                          value={100 - (debt.balance / (debt.balance + debt.interestPaid)) * 100} 
+                          className="h-2" 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
       <Footer />

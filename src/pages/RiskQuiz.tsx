@@ -10,7 +10,6 @@ import Footer from '@/components/layout/Footer';
 
 const RiskQuiz = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -166,7 +165,7 @@ const RiskQuiz = () => {
   if (isCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <Header />
         
         <div className="max-w-2xl mx-auto px-6 py-8">
           <Card className="text-center">
@@ -204,7 +203,7 @@ const RiskQuiz = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
       <div className="max-w-2xl mx-auto px-6 py-8">
         <div className="mb-8 text-center">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +11,6 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Contact = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -32,7 +30,7 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-12">

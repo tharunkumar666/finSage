@@ -1,508 +1,319 @@
 
 import { useState } from 'react';
-import { Calculator, TrendingUp, DollarSign, Calendar, Save } from 'lucide-react';
+import { Calculator, TrendingUp, PiggyBank, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Calculators = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-
-  // SIP Calculator State
-  const [sipInputs, setSipInputs] = useState({
-    amount: '1000',
-    rate: '12',
-    years: '10'
+  const [activeCalculator, setActiveCalculator] = useState('sip');
+  const [sipData, setSipData] = useState({
+    monthlyAmount: 1000,
+    rate: 12,
+    years: 10
   });
 
-  // Step-up SIP Calculator State
-  const [stepUpInputs, setStepUpInputs] = useState({
-    amount: '1000',
-    rate: '12',
-    years: '10',
-    stepUpRate: '10'
+  const [stepUpData, setStepUpData] = useState({
+    initialAmount: 1000,
+    stepUpRate: 10,
+    rate: 12,
+    years: 10
   });
 
-  // Debt Calculator State
-  const [debtInputs, setDebtInputs] = useState({
-    principal: '10000',
-    rate: '18',
-    payment: '500'
+  const [debtData, setDebtData] = useState({
+    principal: 50000,
+    rate: 6.5,
+    monthlyPayment: 500
   });
-
-  const [sipResult, setSipResult] = useState(null);
-  const [stepUpResult, setStepUpResult] = useState(null);
-  const [debtResult, setDebtResult] = useState(null);
 
   const calculateSIP = () => {
-    const P = parseFloat(sipInputs.amount);
-    const r = parseFloat(sipInputs.rate) / 100 / 12;
-    const n = parseFloat(sipInputs.years) * 12;
+    const monthlyRate = sipData.rate / 100 / 12;
+    const months = sipData.years * 12;
+    const futureValue = sipData.monthlyAmount * (((1 + monthlyRate) ** months - 1) / monthlyRate) * (1 + monthlyRate);
+    const totalInvested = sipData.monthlyAmount * months;
+    const returns = futureValue - totalInvested;
     
-    if (r === 0) return P * n;
-    
-    const maturityAmount = P * (((Math.pow(1 + r, n) - 1) / r) * (1 + r));
-    return maturityAmount;
+    return {
+      futureValue: Math.round(futureValue),
+      totalInvested,
+      returns: Math.round(returns)
+    };
   };
 
   const calculateStepUpSIP = () => {
-    const P = parseFloat(stepUpInputs.amount);
-    const r = parseFloat(stepUpInputs.rate) / 100 / 12;
-    const years = parseFloat(stepUpInputs.years);
-    const stepUp = parseFloat(stepUpInputs.stepUpRate) / 100;
+    let futureValue = 0;
+    let totalInvested = 0;
+    let currentAmount = stepUpData.initialAmount;
+    const monthlyRate = stepUpData.rate / 100 / 12;
     
-    let maturityAmount = 0;
-    let currentSIP = P;
-    
-    for (let year = 1; year <= years; year++) {
-      const n = 12;
-      if (r === 0) {
-        maturityAmount += currentSIP * n;
-      } else {
-        maturityAmount += currentSIP * (((Math.pow(1 + r, n) - 1) / r) * (1 + r));
-      }
-      currentSIP = currentSIP * (1 + stepUp);
+    for (let year = 1; year <= stepUpData.years; year++) {
+      const months = 12;
+      const yearlyFV = currentAmount * (((1 + monthlyRate) ** months - 1) / monthlyRate) * (1 + monthlyRate);
+      futureValue += yearlyFV * ((1 + monthlyRate) ** ((stepUpData.years - year) * 12));
+      totalInvested += currentAmount * 12;
+      currentAmount = currentAmount * (1 + stepUpData.stepUpRate / 100);
     }
     
-    return maturityAmount;
+    return {
+      futureValue: Math.round(futureValue),
+      totalInvested: Math.round(totalInvested),
+      returns: Math.round(futureValue - totalInvested)
+    };
   };
 
   const calculateDebtPayoff = () => {
-    const principal = parseFloat(debtInputs.principal);
-    const monthlyRate = parseFloat(debtInputs.rate) / 100 / 12;
-    const payment = parseFloat(debtInputs.payment);
+    const monthlyRate = debtData.rate / 100 / 12;
+    const months = Math.log(1 + (debtData.principal * monthlyRate) / debtData.monthlyPayment) / Math.log(1 + monthlyRate);
+    const totalPayment = debtData.monthlyPayment * months;
+    const totalInterest = totalPayment - debtData.principal;
     
-    if (monthlyRate === 0) {
-      return Math.ceil(principal / payment);
-    }
-    
-    const months = -Math.log(1 - (principal * monthlyRate) / payment) / Math.log(1 + monthlyRate);
-    return Math.ceil(months);
+    return {
+      months: Math.round(months),
+      years: Math.round(months / 12 * 10) / 10,
+      totalPayment: Math.round(totalPayment),
+      totalInterest: Math.round(totalInterest)
+    };
   };
 
-  const handleSipCalculate = () => {
-    const maturity = calculateSIP();
-    const invested = parseFloat(sipInputs.amount) * parseFloat(sipInputs.years) * 12;
-    const gains = maturity - invested;
-    
-    setSipResult({ maturity, invested, gains });
-    
-    // Save to history
-    toast({
-      title: "SIP Calculation Saved",
-      description: "Your SIP calculation has been saved to history.",
-    });
-  };
-
-  const handleStepUpCalculate = () => {
-    const maturity = calculateStepUpSIP();
-    const regularSIP = calculateSIP();
-    const benefit = maturity - regularSIP;
-    
-    setStepUpResult({ maturity, regularSIP, benefit });
-    
-    // Save to history
-    toast({
-      title: "Step-up SIP Calculation Saved",
-      description: "Your step-up SIP calculation has been saved to history.",
-    });
-  };
-
-  const handleDebtCalculate = () => {
-    const months = calculateDebtPayoff();
-    const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
-    const totalInterest = (parseFloat(debtInputs.payment) * months) - parseFloat(debtInputs.principal);
-    const totalPayments = parseFloat(debtInputs.payment) * months;
-    
-    setDebtResult({ months, years, remainingMonths, totalInterest, totalPayments });
-    
-    // Save to history
-    toast({
-      title: "Debt Calculation Saved",
-      description: "Your debt payoff calculation has been saved to history.",
-    });
-  };
+  const sipResult = calculateSIP();
+  const stepUpResult = calculateStepUpSIP();
+  const debtResult = calculateDebtPayoff();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Financial Calculators
-          </h1>
-          <p className="text-gray-600">
-            Plan your investments and debt repayment with our interactive tools
-          </p>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Calculators</h1>
+          <p className="text-gray-600">Plan your investments and debt repayment strategies</p>
         </div>
 
-        <Tabs defaultValue="sip" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="sip">SIP Calculator</TabsTrigger>
-            <TabsTrigger value="stepup">Step-up SIP</TabsTrigger>
-            <TabsTrigger value="debt">Debt Payoff</TabsTrigger>
-          </TabsList>
+        {/* Calculator Tabs */}
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
+          <Button
+            onClick={() => setActiveCalculator('sip')}
+            variant={activeCalculator === 'sip' ? 'default' : 'outline'}
+            className="flex items-center gap-2"
+          >
+            <PiggyBank className="h-4 w-4" />
+            SIP Calculator
+          </Button>
+          
+          <Button
+            onClick={() => setActiveCalculator('stepup')}
+            variant={activeCalculator === 'stepup' ? 'default' : 'outline'}
+            className="flex items-center gap-2"
+          >
+            <TrendingUp className="h-4 w-4" />
+            Step-up SIP
+          </Button>
+          
+          <Button
+            onClick={() => setActiveCalculator('debt')}
+            variant={activeCalculator === 'debt' ? 'default' : 'outline'}
+            className="flex items-center gap-2"
+          >
+            <CreditCard className="h-4 w-4" />
+            Debt Payoff
+          </Button>
+        </div>
 
-          {/* SIP Calculator */}
-          <TabsContent value="sip" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    SIP Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    Calculate your systematic investment plan returns
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-blue-600" />
+                {activeCalculator === 'sip' && 'SIP Calculator'}
+                {activeCalculator === 'stepup' && 'Step-up SIP Calculator'}
+                {activeCalculator === 'debt' && 'Debt Payoff Calculator'}
+              </CardTitle>
+              <CardDescription>
+                {activeCalculator === 'sip' && 'Calculate returns from systematic investment plans'}
+                {activeCalculator === 'stepup' && 'Plan increasing SIP amounts over time'}
+                {activeCalculator === 'debt' && 'Calculate time to pay off your debts'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {activeCalculator === 'sip' && (
+                <>
                   <div>
-                    <Label htmlFor="sip-amount">Monthly Investment ($)</Label>
+                    <Label htmlFor="sipAmount">Monthly Investment (₹)</Label>
                     <Input
-                      id="sip-amount"
+                      id="sipAmount"
                       type="number"
-                      value={sipInputs.amount}
-                      onChange={(e) => setSipInputs({...sipInputs, amount: e.target.value})}
-                      placeholder="1000"
+                      value={sipData.monthlyAmount}
+                      onChange={(e) => setSipData({...sipData, monthlyAmount: parseInt(e.target.value) || 0})}
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="sip-rate">Expected Annual Return (%)</Label>
+                    <Label htmlFor="sipRate">Expected Annual Return (%)</Label>
                     <Input
-                      id="sip-rate"
+                      id="sipRate"
                       type="number"
-                      step="0.1"
-                      value={sipInputs.rate}
-                      onChange={(e) => setSipInputs({...sipInputs, rate: e.target.value})}
-                      placeholder="12"
+                      value={sipData.rate}
+                      onChange={(e) => setSipData({...sipData, rate: parseFloat(e.target.value) || 0})}
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="sip-years">Investment Period (Years)</Label>
+                    <Label htmlFor="sipYears">Investment Period (Years)</Label>
                     <Input
-                      id="sip-years"
+                      id="sipYears"
                       type="number"
-                      value={sipInputs.years}
-                      onChange={(e) => setSipInputs({...sipInputs, years: e.target.value})}
-                      placeholder="10"
+                      value={sipData.years}
+                      onChange={(e) => setSipData({...sipData, years: parseInt(e.target.value) || 0})}
                     />
                   </div>
-                  
-                  <Button onClick={handleSipCalculate} className="w-full bg-green-600 hover:bg-green-700">
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Calculate SIP
-                  </Button>
-                </CardContent>
-              </Card>
+                </>
+              )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Investment Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {sipResult ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm text-blue-600 font-medium">Total Invested</p>
-                          <p className="text-xl font-bold text-blue-800">
-                            ${sipResult.invested.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <p className="text-sm text-green-600 font-medium">Total Gains</p>
-                          <p className="text-xl font-bold text-green-800">
-                            ${sipResult.gains.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl">
-                        <p className="text-sm text-gray-600 mb-2">Maturity Amount</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                          ${sipResult.maturity.toLocaleString()}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Calculator className="h-16 w-16 mx-auto mb-4" />
-                      <p>Click "Calculate SIP" to see results</p>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Monthly Investment</span>
-                      <span>${sipInputs.amount}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Investment Period</span>
-                      <span>{sipInputs.years} years</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Expected Return</span>
-                      <span>{sipInputs.rate}% p.a.</span>
-                    </div>
+              {activeCalculator === 'stepup' && (
+                <>
+                  <div>
+                    <Label htmlFor="initialAmount">Initial Monthly Amount (₹)</Label>
+                    <Input
+                      id="initialAmount"
+                      type="number"
+                      value={stepUpData.initialAmount}
+                      onChange={(e) => setStepUpData({...stepUpData, initialAmount: parseInt(e.target.value) || 0})}
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                  <div>
+                    <Label htmlFor="stepUpRate">Annual Step-up Rate (%)</Label>
+                    <Input
+                      id="stepUpRate"
+                      type="number"
+                      value={stepUpData.stepUpRate}
+                      onChange={(e) => setStepUpData({...stepUpData, stepUpRate: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="expectedReturn">Expected Annual Return (%)</Label>
+                    <Input
+                      id="expectedReturn"
+                      type="number"
+                      value={stepUpData.rate}
+                      onChange={(e) => setStepUpData({...stepUpData, rate: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="investmentYears">Investment Period (Years)</Label>
+                    <Input
+                      id="investmentYears"
+                      type="number"
+                      value={stepUpData.years}
+                      onChange={(e) => setStepUpData({...stepUpData, years: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                </>
+              )}
 
-          {/* Step-up SIP Calculator */}
-          <TabsContent value="stepup" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    Step-up SIP Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    See how increasing your SIP annually boosts returns
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              {activeCalculator === 'debt' && (
+                <>
                   <div>
-                    <Label htmlFor="stepup-amount">Initial Monthly Investment ($)</Label>
+                    <Label htmlFor="principal">Outstanding Amount (₹)</Label>
                     <Input
-                      id="stepup-amount"
+                      id="principal"
                       type="number"
-                      value={stepUpInputs.amount}
-                      onChange={(e) => setStepUpInputs({...stepUpInputs, amount: e.target.value})}
-                      placeholder="1000"
+                      value={debtData.principal}
+                      onChange={(e) => setDebtData({...debtData, principal: parseInt(e.target.value) || 0})}
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="stepup-rate">Expected Annual Return (%)</Label>
+                    <Label htmlFor="interestRate">Interest Rate (% per annum)</Label>
                     <Input
-                      id="stepup-rate"
+                      id="interestRate"
                       type="number"
-                      step="0.1"
-                      value={stepUpInputs.rate}
-                      onChange={(e) => setStepUpInputs({...stepUpInputs, rate: e.target.value})}
-                      placeholder="12"
+                      value={debtData.rate}
+                      onChange={(e) => setDebtData({...debtData, rate: parseFloat(e.target.value) || 0})}
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="stepup-years">Investment Period (Years)</Label>
+                    <Label htmlFor="monthlyPayment">Monthly Payment (₹)</Label>
                     <Input
-                      id="stepup-years"
+                      id="monthlyPayment"
                       type="number"
-                      value={stepUpInputs.years}
-                      onChange={(e) => setStepUpInputs({...stepUpInputs, years: e.target.value})}
-                      placeholder="10"
+                      value={debtData.monthlyPayment}
+                      onChange={(e) => setDebtData({...debtData, monthlyPayment: parseInt(e.target.value) || 0})}
                     />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="stepup-increment">Annual Step-up (%)</Label>
-                    <Input
-                      id="stepup-increment"
-                      type="number"
-                      step="0.1"
-                      value={stepUpInputs.stepUpRate}
-                      onChange={(e) => setStepUpInputs({...stepUpInputs, stepUpRate: e.target.value})}
-                      placeholder="10"
-                    />
-                  </div>
-                  
-                  <Button onClick={handleStepUpCalculate} className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Calculate Step-up SIP
-                  </Button>
-                </CardContent>
-              </Card>
+                </>
+              )}
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Step-up vs Regular SIP</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {stepUpResult ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm text-blue-600 font-medium">Regular SIP</p>
-                          <p className="text-lg font-bold text-blue-800">
-                            ${stepUpResult.regularSIP.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
-                          <p className="text-sm text-green-600 font-medium">Step-up SIP</p>
-                          <p className="text-lg font-bold text-green-800">
-                            ${stepUpResult.maturity.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl">
-                        <p className="text-sm text-gray-600 mb-2">Additional Benefit</p>
-                        <p className="text-2xl font-bold text-green-600">
-                          ${stepUpResult.benefit.toLocaleString()}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Calculator className="h-16 w-16 mx-auto mb-4" />
-                      <p>Click "Calculate Step-up SIP" to see results</p>
+          {/* Results Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Results</CardTitle>
+              <CardDescription>Your calculation results</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {activeCalculator === 'sip' && (
+                <div className="space-y-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-green-800 mb-2">Maturity Amount</h3>
+                    <p className="text-2xl font-bold text-green-600">₹{sipResult.futureValue.toLocaleString()}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-600">Total Invested</p>
+                      <p className="font-semibold">₹{sipResult.totalInvested.toLocaleString()}</p>
                     </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Initial Monthly SIP</span>
-                      <span>${stepUpInputs.amount}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Annual Step-up</span>
-                      <span>{stepUpInputs.stepUpRate}%</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Investment Period</span>
-                      <span>{stepUpInputs.years} years</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Expected Return</span>
-                      <span>{stepUpInputs.rate}% p.a.</span>
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <p className="text-sm text-purple-600">Total Returns</p>
+                      <p className="font-semibold">₹{sipResult.returns.toLocaleString()}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                </div>
+              )}
 
-          {/* Debt Payoff Calculator */}
-          <TabsContent value="debt" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-red-600" />
-                    Debt Payoff Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    Calculate how long it will take to pay off your debt
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="debt-principal">Total Debt Amount ($)</Label>
-                    <Input
-                      id="debt-principal"
-                      type="number"
-                      value={debtInputs.principal}
-                      onChange={(e) => setDebtInputs({...debtInputs, principal: e.target.value})}
-                      placeholder="10000"
-                    />
+              {activeCalculator === 'stepup' && (
+                <div className="space-y-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-green-800 mb-2">Maturity Amount</h3>
+                    <p className="text-2xl font-bold text-green-600">₹{stepUpResult.futureValue.toLocaleString()}</p>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="debt-rate">Annual Interest Rate (%)</Label>
-                    <Input
-                      id="debt-rate"
-                      type="number"
-                      step="0.1"
-                      value={debtInputs.rate}
-                      onChange={(e) => setDebtInputs({...debtInputs, rate: e.target.value})}
-                      placeholder="18"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-600">Total Invested</p>
+                      <p className="font-semibold">₹{stepUpResult.totalInvested.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <p className="text-sm text-purple-600">Total Returns</p>
+                      <p className="font-semibold">₹{stepUpResult.returns.toLocaleString()}</p>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="debt-payment">Monthly Payment ($)</Label>
-                    <Input
-                      id="debt-payment"
-                      type="number"
-                      value={debtInputs.payment}
-                      onChange={(e) => setDebtInputs({...debtInputs, payment: e.target.value})}
-                      placeholder="500"
-                    />
-                  </div>
-                  
-                  <Button onClick={handleDebtCalculate} className="w-full bg-red-600 hover:bg-red-700">
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Calculate Payoff Time
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+              )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payoff Timeline</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {debtResult ? (
-                    <>
-                      <div className="text-center p-6 bg-gradient-to-r from-red-100 to-orange-100 rounded-xl">
-                        <p className="text-sm text-gray-600 mb-2">Time to Pay Off</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                          {debtResult.years > 0 && `${debtResult.years} years `}
-                          {debtResult.remainingMonths} months
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-red-50 rounded-lg">
-                          <p className="text-sm text-red-600 font-medium">Total Interest</p>
-                          <p className="text-lg font-bold text-red-800">
-                            ${debtResult.totalInterest.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm text-blue-600 font-medium">Total Payments</p>
-                          <p className="text-lg font-bold text-blue-800">
-                            ${debtResult.totalPayments.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Calculator className="h-16 w-16 mx-auto mb-4" />
-                      <p>Click "Calculate Payoff Time" to see results</p>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Principal Amount</span>
-                      <span>${parseFloat(debtInputs.principal).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Interest Rate</span>
-                      <span>{debtInputs.rate}% p.a.</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Monthly Payment</span>
-                      <span>${debtInputs.payment}</span>
-                    </div>
-                    {debtResult && (
-                      <div className="flex justify-between text-sm">
-                        <span>Total Months</span>
-                        <span>{debtResult.months} months</span>
-                      </div>
-                    )}
+              {activeCalculator === 'debt' && (
+                <div className="space-y-4">
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-red-800 mb-2">Payoff Time</h3>
+                    <p className="text-2xl font-bold text-red-600">{debtResult.years} years</p>
+                    <p className="text-sm text-red-600">({debtResult.months} months)</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-orange-50 p-3 rounded-lg">
+                      <p className="text-sm text-orange-600">Total Payment</p>
+                      <p className="font-semibold">₹{debtResult.totalPayment.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <p className="text-sm text-yellow-600">Total Interest</p>
+                      <p className="font-semibold">₹{debtResult.totalInterest.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Footer />

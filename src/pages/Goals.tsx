@@ -1,234 +1,165 @@
 
 import { useState } from 'react';
-import { Target, Plus, Edit3, Trash2, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { Target, Plus, Edit2, Trash2, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
+interface Goal {
+  id: number;
+  name: string;
+  target: number;
+  current: number;
+  deadline: string;
+  category: string;
+  progress: number;
+}
+
 const Goals = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [goals, setGoals] = useState([
+  const [goals, setGoals] = useState<Goal[]>([
     {
       id: 1,
       name: 'Emergency Fund',
       target: 10000,
       current: 3500,
-      progress: 35,
-      category: 'Safety',
       deadline: '2024-12-31',
-      priority: 'High'
+      category: 'Safety',
+      progress: 35
     },
     {
       id: 2,
       name: 'House Down Payment',
       target: 50000,
       current: 12000,
-      progress: 24,
-      category: 'Real Estate',
-      deadline: '2027-06-01',
-      priority: 'Medium'
+      deadline: '2026-06-30',
+      category: 'Investment',
+      progress: 24
     },
     {
       id: 3,
       name: 'Retirement Fund',
       target: 100000,
       current: 15420,
-      progress: 15,
+      deadline: '2035-12-31',
       category: 'Retirement',
-      deadline: '2030-01-01',
-      priority: 'Low'
+      progress: 15
     }
   ]);
 
   const [newGoal, setNewGoal] = useState({
     name: '',
-    target: '',
-    current: '',
-    category: '',
+    target: 0,
+    current: 0,
     deadline: '',
-    priority: 'Medium'
+    category: 'Investment'
   });
 
-  const [editingGoal, setEditingGoal] = useState<any>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const addGoal = () => {
-    const target = parseFloat(newGoal.target);
-    const current = parseFloat(newGoal.current || '0');
-    const progress = target > 0 ? Math.round((current / target) * 100) : 0;
-
-    const goal = {
-      id: goals.length + 1,
-      name: newGoal.name,
-      target,
-      current,
-      progress,
-      category: newGoal.category,
-      deadline: newGoal.deadline,
-      priority: newGoal.priority
-    };
-
-    setGoals([...goals, goal]);
-    setNewGoal({ name: '', target: '', current: '', category: '', deadline: '', priority: 'Medium' });
-    setIsAddDialogOpen(false);
-    toast({
-      title: "Goal Added!",
-      description: `${goal.name} has been added to your goals.`,
-    });
+    if (newGoal.name && newGoal.target > 0) {
+      const progress = newGoal.current > 0 ? (newGoal.current / newGoal.target) * 100 : 0;
+      const goal: Goal = {
+        ...newGoal,
+        id: Date.now(),
+        progress: Math.round(progress)
+      };
+      setGoals([...goals, goal]);
+      setNewGoal({ name: '', target: 0, current: 0, deadline: '', category: 'Investment' });
+      setIsDialogOpen(false);
+    }
   };
 
-  const updateGoal = () => {
-    if (!editingGoal) return;
-
-    const target = parseFloat(editingGoal.target);
-    const current = parseFloat(editingGoal.current);
-    const progress = target > 0 ? Math.round((current / target) * 100) : 0;
-
-    const updatedGoals = goals.map(goal => 
-      goal.id === editingGoal.id 
-        ? { ...editingGoal, target, current, progress }
-        : goal
-    );
-
-    setGoals(updatedGoals);
-    setEditingGoal(null);
-    setIsEditDialogOpen(false);
-    toast({
-      title: "Goal Updated!",
-      description: "Your goal has been successfully updated.",
-    });
+  const updateGoal = (id: number, updates: Partial<Goal>) => {
+    setGoals(goals.map(goal => {
+      if (goal.id === id) {
+        const updated = { ...goal, ...updates };
+        updated.progress = Math.round((updated.current / updated.target) * 100);
+        return updated;
+      }
+      return goal;
+    }));
   };
 
   const deleteGoal = (id: number) => {
     setGoals(goals.filter(goal => goal.id !== id));
-    toast({
-      title: "Goal Deleted",
-      description: "Goal has been removed from your list.",
-    });
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Low': return 'bg-green-100 text-green-800';
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'Safety': return 'bg-green-100 text-green-800';
+      case 'Investment': return 'bg-blue-100 text-blue-800';
+      case 'Retirement': return 'bg-purple-100 text-purple-800';
+      case 'Education': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getTimeRemaining = (deadline: string) => {
-    const today = new Date();
-    const target = new Date(deadline);
-    const diffTime = target.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return 'Overdue';
-    if (diffDays === 0) return 'Due today';
-    if (diffDays === 1) return '1 day left';
-    if (diffDays < 30) return `${diffDays} days left`;
-    if (diffDays < 365) return `${Math.round(diffDays / 30)} months left`;
-    return `${Math.round(diffDays / 365)} years left`;
-  };
+  const totalGoalsAmount = goals.reduce((sum, goal) => sum + goal.target, 0);
+  const totalSavedAmount = goals.reduce((sum, goal) => sum + goal.current, 0);
+  const overallProgress = totalGoalsAmount > 0 ? (totalSavedAmount / totalGoalsAmount) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Goals</h1>
-            <p className="text-gray-600">Set, track, and achieve your financial objectives</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <Target className="h-8 w-8 text-blue-600" />
+              Financial Goals
+            </h1>
+            <p className="text-gray-600">Track and achieve your financial milestones</p>
           </div>
           
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Goal
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Goal</DialogTitle>
-                <DialogDescription>
-                  Set a new financial goal to track your progress.
-                </DialogDescription>
+                <DialogTitle>Add New Goal</DialogTitle>
+                <DialogDescription>Set a new financial goal to work towards</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="goal-name">Goal Name</Label>
+                  <Label htmlFor="goalName">Goal Name</Label>
                   <Input
-                    id="goal-name"
+                    id="goalName"
                     value={newGoal.name}
                     onChange={(e) => setNewGoal({...newGoal, name: e.target.value})}
                     placeholder="e.g., Emergency Fund"
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="target-amount">Target Amount ($)</Label>
-                    <Input
-                      id="target-amount"
-                      type="number"
-                      value={newGoal.target}
-                      onChange={(e) => setNewGoal({...newGoal, target: e.target.value})}
-                      placeholder="10000"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="current-amount">Current Amount ($)</Label>
-                    <Input
-                      id="current-amount"
-                      type="number"
-                      value={newGoal.current}
-                      onChange={(e) => setNewGoal({...newGoal, current: e.target.value})}
-                      placeholder="0"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="targetAmount">Target Amount ($)</Label>
+                  <Input
+                    id="targetAmount"
+                    type="number"
+                    value={newGoal.target || ''}
+                    onChange={(e) => setNewGoal({...newGoal, target: parseInt(e.target.value) || 0})}
+                  />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={newGoal.category} onValueChange={(value) => setNewGoal({...newGoal, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Safety">Emergency Fund</SelectItem>
-                        <SelectItem value="Investment">Investment</SelectItem>
-                        <SelectItem value="Real Estate">Real Estate</SelectItem>
-                        <SelectItem value="Education">Education</SelectItem>
-                        <SelectItem value="Retirement">Retirement</SelectItem>
-                        <SelectItem value="Travel">Travel</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select value={newGoal.priority} onValueChange={(value) => setNewGoal({...newGoal, priority: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label htmlFor="currentAmount">Current Amount ($)</Label>
+                  <Input
+                    id="currentAmount"
+                    type="number"
+                    value={newGoal.current || ''}
+                    onChange={(e) => setNewGoal({...newGoal, current: parseInt(e.target.value) || 0})}
+                  />
                 </div>
                 
                 <div>
@@ -241,146 +172,112 @@ const Goals = () => {
                   />
                 </div>
                 
-                <Button onClick={addGoal} className="w-full" disabled={!newGoal.name || !newGoal.target}>
-                  Create Goal
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    value={newGoal.category}
+                    onChange={(e) => setNewGoal({...newGoal, category: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="Investment">Investment</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Retirement">Retirement</option>
+                    <option value="Education">Education</option>
+                  </select>
+                </div>
+                
+                <Button onClick={addGoal} className="w-full">
+                  Add Goal
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Goals Overview */}
+        {/* Overview Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
-            <CardContent className="p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{goals.length}</div>
-                <p className="text-sm text-gray-600">Active Goals</p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Goals</p>
+                  <p className="text-2xl font-bold text-blue-600">{goals.length}</p>
+                </div>
+                <Target className="h-8 w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardContent className="p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  ${goals.reduce((sum, goal) => sum + goal.current, 0).toLocaleString()}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Target</p>
+                  <p className="text-2xl font-bold text-purple-600">${totalGoalsAmount.toLocaleString()}</p>
                 </div>
-                <p className="text-sm text-gray-600">Total Saved</p>
+                <Target className="h-8 w-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardContent className="p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {Math.round(goals.reduce((sum, goal) => sum + goal.progress, 0) / goals.length)}%
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Saved</p>
+                  <p className="text-2xl font-bold text-green-600">${totalSavedAmount.toLocaleString()}</p>
                 </div>
-                <p className="text-sm text-gray-600">Average Progress</p>
+                <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Goals List */}
-        <div className="space-y-6">
+        {/* Overall Progress */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Overall Progress</CardTitle>
+            <CardDescription>Combined progress across all your financial goals</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Total Progress</span>
+                <span>{Math.round(overallProgress)}%</span>
+              </div>
+              <Progress value={overallProgress} className="h-3" />
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>${totalSavedAmount.toLocaleString()} saved</span>
+                <span>${totalGoalsAmount.toLocaleString()} target</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Goals Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {goals.map((goal) => (
-            <Card key={goal.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">{goal.name}</h3>
-                      <Badge className={getPriorityColor(goal.priority)}>
-                        {goal.priority}
-                      </Badge>
+            <Card key={goal.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{goal.name}</CardTitle>
+                    <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${getCategoryColor(goal.category)}`}>
+                      {goal.category}
                     </div>
-                    <p className="text-gray-600 text-sm">{goal.category}</p>
                   </div>
-                  
                   <div className="flex gap-2">
-                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setEditingGoal({...goal, target: goal.target.toString(), current: goal.current.toString()})}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Goal</DialogTitle>
-                          <DialogDescription>
-                            Update your goal details and progress.
-                          </DialogDescription>
-                        </DialogHeader>
-                        {editingGoal && (
-                          <div className="space-y-4">
-                            <div>
-                              <Label>Goal Name</Label>
-                              <Input
-                                value={editingGoal.name}
-                                onChange={(e) => setEditingGoal({...editingGoal, name: e.target.value})}
-                              />
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Target Amount ($)</Label>
-                                <Input
-                                  type="number"
-                                  value={editingGoal.target}
-                                  onChange={(e) => setEditingGoal({...editingGoal, target: e.target.value})}
-                                />
-                              </div>
-                              <div>
-                                <Label>Current Amount ($)</Label>
-                                <Input
-                                  type="number"
-                                  value={editingGoal.current}
-                                  onChange={(e) => setEditingGoal({...editingGoal, current: e.target.value})}
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Priority</Label>
-                                <Select value={editingGoal.priority} onValueChange={(value) => setEditingGoal({...editingGoal, priority: value})}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="High">High</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="Low">Low</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <Label>Target Date</Label>
-                                <Input
-                                  type="date"
-                                  value={editingGoal.deadline}
-                                  onChange={(e) => setEditingGoal({...editingGoal, deadline: e.target.value})}
-                                />
-                              </div>
-                            </div>
-                            
-                            <Button onClick={updateGoal} className="w-full">
-                              Update Goal
-                            </Button>
-                          </div>
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingGoal(goal)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => deleteGoal(goal.id)}
                       className="text-red-600 hover:text-red-700"
                     >
@@ -388,23 +285,61 @@ const Goals = () => {
                     </Button>
                   </div>
                 </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}</span>
-                    <span className="font-medium">{goal.progress}%</span>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-2xl font-bold text-green-600">
+                      ${goal.current.toLocaleString()}
+                    </span>
+                    <span className="text-gray-500">
+                      of ${goal.target.toLocaleString()}
+                    </span>
                   </div>
-                  <Progress value={goal.progress} className="h-3" />
                   
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>{getTimeRemaining(goal.deadline)}</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{goal.progress}%</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      <span>${(goal.target - goal.current).toLocaleString()} remaining</span>
+                    <Progress value={goal.progress} className="h-2" />
+                  </div>
+                  
+                  {goal.deadline && (
+                    <div className="text-sm text-gray-500">
+                      Target: {new Date(goal.deadline).toLocaleDateString()}
                     </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Add amount"
+                      className="flex-1"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const amount = parseInt((e.target as HTMLInputElement).value) || 0;
+                          if (amount > 0) {
+                            updateGoal(goal.id, { current: goal.current + amount });
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        const input = (e.target as HTMLElement).parentElement?.querySelector('input');
+                        const amount = parseInt(input?.value || '0') || 0;
+                        if (amount > 0) {
+                          updateGoal(goal.id, { current: goal.current + amount });
+                          if (input) input.value = '';
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -412,20 +347,74 @@ const Goals = () => {
           ))}
         </div>
 
-        {goals.length === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Target className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Goals Set</h3>
-              <p className="text-gray-600 mb-6">
-                Start your financial journey by setting your first goal.
-              </p>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Goal
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Edit Goal Dialog */}
+        {editingGoal && (
+          <Dialog open={!!editingGoal} onOpenChange={() => setEditingGoal(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Goal</DialogTitle>
+                <DialogDescription>Update your goal details</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="editName">Goal Name</Label>
+                  <Input
+                    id="editName"
+                    value={editingGoal.name}
+                    onChange={(e) => setEditingGoal({...editingGoal, name: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="editTarget">Target Amount ($)</Label>
+                  <Input
+                    id="editTarget"
+                    type="number"
+                    value={editingGoal.target}
+                    onChange={(e) => setEditingGoal({...editingGoal, target: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="editCurrent">Current Amount ($)</Label>
+                  <Input
+                    id="editCurrent"
+                    type="number"
+                    value={editingGoal.current}
+                    onChange={(e) => setEditingGoal({...editingGoal, current: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="editDeadline">Target Date</Label>
+                  <Input
+                    id="editDeadline"
+                    type="date"
+                    value={editingGoal.deadline}
+                    onChange={(e) => setEditingGoal({...editingGoal, deadline: e.target.value})}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      updateGoal(editingGoal.id, editingGoal);
+                      setEditingGoal(null);
+                    }}
+                    className="flex-1"
+                  >
+                    Update Goal
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditingGoal(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 

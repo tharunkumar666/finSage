@@ -8,8 +8,6 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Dashboard = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-
   // Mock data synchronized with Goals page
   const mockData = {
     totalInvestments: 15420,
@@ -39,7 +37,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
@@ -255,7 +253,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {mockData.debts.map((debt, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
+                  <div key={index} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium">{debt.name}</h4>
                       <span className="text-sm text-gray-500">{debt.rate}% APR</span>
