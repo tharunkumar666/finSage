@@ -81,17 +81,17 @@ const Investments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-slate-900">
       <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
               <TrendingUp className="h-8 w-8 text-green-600" />
               Investment Portfolio
             </h1>
-            <p className="text-gray-600">Manage and track your investments</p>
+            <p className="text-muted-foreground">Manage and track your investments</p>
           </div>
           
           <Button className="bg-green-600 hover:bg-green-700">
@@ -106,11 +106,11 @@ const Investments = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Portfolio</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-muted-foreground">Total Portfolio</p>
+                  <p className="text-2xl font-bold text-foreground">
                     ${portfolioData.totalValue.toLocaleString()}
                   </p>
-                  <p className={`text-sm ${portfolioData.todayChangePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm ${portfolioData.todayChangePercent >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
                     {portfolioData.todayChangePercent >= 0 ? '+' : ''}${portfolioData.todayChange} 
                     ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent}%)
                   </p>
@@ -125,16 +125,16 @@ const Investments = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 capitalize">{key}</p>
-                    <p className="text-xl font-bold text-gray-900">
+                    <p className="text-sm text-muted-foreground capitalize">{key}</p>
+                    <p className="text-xl font-bold text-foreground">
                       ${data.value.toLocaleString()}
                     </p>
-                    <p className={`text-xs ${data.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-xs ${data.change >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
                       {data.change >= 0 ? '+' : ''}{data.change}%
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{data.percentage}%</p>
+                    <p className="text-sm font-medium text-muted-foreground">{data.percentage}%</p>
                   </div>
                 </div>
               </CardContent>
@@ -152,23 +152,23 @@ const Investments = () => {
           <TabsContent value="recommendations" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <TrendingUp className="h-5 w-5 text-blue-600" />
                   AI Investment Recommendations
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-muted-foreground">
                   Based on your {selectedRiskProfile} risk profile and current market conditions
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-6">
                   {recommendedInvestments.map((investment, index) => (
-                    <Card key={index} className="border border-blue-200">
+                    <Card key={index} className="border border-blue-200 dark:border-blue-900">
                       <CardHeader>
                         <div className="flex justify-between items-start">
                           <div>
-                            <CardTitle className="text-lg">{investment.name}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">{investment.type}</p>
+                            <CardTitle className="text-lg text-foreground">{investment.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">{investment.type}</p>
                           </div>
                           <Badge className={getRiskColor(investment.risk)}>
                             {investment.risk} Risk
@@ -177,21 +177,21 @@ const Investments = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <p className="text-sm text-gray-700">{investment.description}</p>
+                          <p className="text-sm text-muted-foreground">{investment.description}</p>
                           
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <p className="text-gray-600">Expected Return</p>
-                              <p className="font-semibold">{investment.expectedReturn}</p>
+                              <p className="text-muted-foreground">Expected Return</p>
+                              <p className="font-semibold text-foreground">{investment.expectedReturn}</p>
                             </div>
                             <div>
-                              <p className="text-gray-600">Suggested Allocation</p>
-                              <p className="font-semibold">{investment.allocation}%</p>
+                              <p className="text-muted-foreground">Suggested Allocation</p>
+                              <p className="font-semibold text-foreground">{investment.allocation}%</p>
                             </div>
                           </div>
                           
-                          <div className="bg-blue-50 p-3 rounded-lg">
-                            <p className="text-sm text-blue-800">
+                          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                            <p className="text-sm text-blue-800 dark:text-blue-300">
                               <strong>Why we recommend this:</strong> {investment.reason}
                             </p>
                           </div>
@@ -217,19 +217,19 @@ const Investments = () => {
             <div className="grid lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <PieChart className="h-5 w-5 text-purple-600" />
                     Asset Allocation
                   </CardTitle>
-                  <CardDescription>Current portfolio distribution</CardDescription>
+                  <CardDescription className="text-muted-foreground">Current portfolio distribution</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {Object.entries(portfolioData.allocation).map(([key, data]) => (
                       <div key={key} className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium capitalize">{key}</span>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm font-medium capitalize text-muted-foreground">{key}</span>
+                          <span className="text-sm text-muted-foreground">
                             {data.percentage}% (${data.value.toLocaleString()})
                           </span>
                         </div>
@@ -242,33 +242,33 @@ const Investments = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <BarChart3 className="h-5 w-5 text-green-600" />
                     Performance Metrics
                   </CardTitle>
-                  <CardDescription>Key portfolio statistics</CardDescription>
+                  <CardDescription className="text-muted-foreground">Key portfolio statistics</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <p className="text-sm text-green-600">Total Return</p>
-                        <p className="text-xl font-bold text-green-700">+8.5%</p>
+                      <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
+                        <p className="text-sm text-green-600 dark:text-green-300">Total Return</p>
+                        <p className="text-xl font-bold text-green-700 dark:text-green-300">+8.5%</p>
                       </div>
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <p className="text-sm text-blue-600">Annual Return</p>
-                        <p className="text-xl font-bold text-blue-700">+12.3%</p>
+                      <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
+                        <p className="text-sm text-blue-600 dark:text-blue-300">Annual Return</p>
+                        <p className="text-xl font-bold text-blue-700 dark:text-blue-300">+12.3%</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-purple-50 p-3 rounded-lg">
-                        <p className="text-sm text-purple-600">Risk Score</p>
-                        <p className="text-xl font-bold text-purple-700">6.5/10</p>
+                      <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
+                        <p className="text-sm text-purple-600 dark:text-purple-300">Risk Score</p>
+                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300">6.5/10</p>
                       </div>
-                      <div className="bg-orange-50 p-3 rounded-lg">
-                        <p className="text-sm text-orange-600">Diversification</p>
-                        <p className="text-xl font-bold text-orange-700">Good</p>
+                      <div className="bg-orange-50 dark:bg-orange-900 p-3 rounded-lg">
+                        <p className="text-sm text-orange-600 dark:text-orange-300">Diversification</p>
+                        <p className="text-xl font-bold text-orange-700 dark:text-orange-300">Good</p>
                       </div>
                     </div>
                   </div>
@@ -280,31 +280,31 @@ const Investments = () => {
           <TabsContent value="transactions">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>Your latest investment activity</CardDescription>
+                <CardTitle className="text-foreground">Recent Transactions</CardTitle>
+                <CardDescription className="text-muted-foreground">Your latest investment activity</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {recentTransactions.map((transaction, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 rounded-lg">
                       <div className="flex items-center gap-4">
                         <div className={`w-2 h-2 rounded-full ${
                           transaction.type === 'Buy' ? 'bg-green-500' : 
                           transaction.type === 'Sell' ? 'bg-red-500' : 'bg-blue-500'
                         }`}></div>
                         <div>
-                          <p className="font-medium">{transaction.asset}</p>
-                          <p className="text-sm text-gray-600">{transaction.date}</p>
+                          <p className="font-medium text-foreground">{transaction.asset}</p>
+                          <p className="text-sm text-muted-foreground">{transaction.date}</p>
                         </div>
                       </div>
                       
                       <div className="text-right">
                         <p className={`font-medium ${
-                          transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                          transaction.amount > 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-400'
                         }`}>
                           {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount)}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {transaction.shares !== 0 && `${transaction.shares} shares`}
                         </p>
                       </div>
@@ -323,3 +323,4 @@ const Investments = () => {
 };
 
 export default Investments;
+
