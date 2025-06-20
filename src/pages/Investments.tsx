@@ -1,16 +1,51 @@
 
 import { useState } from 'react';
-import { TrendingUp, DollarSign, PieChart, BarChart3, Plus } from 'lucide-react';
+import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Investments = () => {
   const [selectedRiskProfile] = useState('Moderate');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [userInvestments, setUserInvestments] = useState([
+    {
+      id: 1,
+      name: 'Apple Inc.',
+      symbol: 'AAPL',
+      shares: 10,
+      currentPrice: 175.20,
+      totalValue: 1752,
+      gainLoss: 125.50,
+      gainLossPercent: 7.7
+    },
+    {
+      id: 2,
+      name: 'Tesla Inc.',
+      symbol: 'TSLA',
+      shares: 5,
+      currentPrice: 240.80,
+      totalValue: 1204,
+      gainLoss: -45.20,
+      gainLossPercent: -3.6
+    }
+  ]);
+
+  const [newInvestment, setNewInvestment] = useState({
+    name: '',
+    symbol: '',
+    shares: 0,
+    currentPrice: 0
+  });
 
   // Mock investment data
   const portfolioData = {
@@ -71,12 +106,32 @@ const Investments = () => {
     { date: '2024-01-01', type: 'Dividend', asset: 'VTI', amount: 45, shares: 0, price: 0 }
   ];
 
+  const addInvestment = () => {
+    if (newInvestment.name && newInvestment.symbol && newInvestment.shares > 0 && newInvestment.currentPrice > 0) {
+      const totalValue = newInvestment.shares * newInvestment.currentPrice;
+      const investment = {
+        id: Date.now(),
+        ...newInvestment,
+        totalValue,
+        gainLoss: 0,
+        gainLossPercent: 0
+      };
+      setUserInvestments([...userInvestments, investment]);
+      setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0 });
+      setIsAddDialogOpen(false);
+    }
+  };
+
+  const removeInvestment = (id: number) => {
+    setUserInvestments(userInvestments.filter(inv => inv.id !== id));
+  };
+
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'Low': return 'bg-green-100 text-green-800';
-      case 'Moderate': return 'bg-yellow-100 text-yellow-800';
-      case 'High': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'Moderate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'High': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
   };
 
@@ -94,10 +149,66 @@ const Investments = () => {
             <p className="text-muted-foreground">Manage and track your investments</p>
           </div>
           
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Investment
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Investment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Investment</DialogTitle>
+                <DialogDescription>
+                  Enter the details of your new investment.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Investment Name</Label>
+                  <Input
+                    id="name"
+                    value={newInvestment.name}
+                    onChange={(e) => setNewInvestment({...newInvestment, name: e.target.value})}
+                    placeholder="e.g., Apple Inc."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="symbol">Symbol</Label>
+                  <Input
+                    id="symbol"
+                    value={newInvestment.symbol}
+                    onChange={(e) => setNewInvestment({...newInvestment, symbol: e.target.value.toUpperCase()})}
+                    placeholder="e.g., AAPL"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="shares">Number of Shares</Label>
+                  <Input
+                    id="shares"
+                    type="number"
+                    value={newInvestment.shares || ''}
+                    onChange={(e) => setNewInvestment({...newInvestment, shares: parseInt(e.target.value) || 0})}
+                    placeholder="e.g., 10"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="price">Current Price ($)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={newInvestment.currentPrice || ''}
+                    onChange={(e) => setNewInvestment({...newInvestment, currentPrice: parseFloat(e.target.value) || 0})}
+                    placeholder="e.g., 175.20"
+                  />
+                </div>
+                <Button onClick={addInvestment} className="w-full">
+                  Add Investment
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Portfolio Overview */}
@@ -142,12 +253,90 @@ const Investments = () => {
           ))}
         </div>
 
-        <Tabs defaultValue="recommendations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="holdings" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="holdings">My Holdings</TabsTrigger>
             <TabsTrigger value="recommendations">AI Recommendations</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio Analysis</TabsTrigger>
             <TabsTrigger value="transactions">Recent Transactions</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="holdings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  Your Investments
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Manage your current investment portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {userInvestments.map((investment) => (
+                    <div key={investment.id} className="border rounded-lg p-4 dark:border-gray-700">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{investment.name}</h3>
+                          <p className="text-sm text-muted-foreground">{investment.symbol}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-foreground">${investment.totalValue.toLocaleString()}</p>
+                            <p className={`text-sm ${investment.gainLoss >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
+                              {investment.gainLoss >= 0 ? '+' : ''}${investment.gainLoss} ({investment.gainLossPercent >= 0 ? '+' : ''}{investment.gainLossPercent}%)
+                            </p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => removeInvestment(investment.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Shares</p>
+                          <p className="font-semibold text-foreground">{investment.shares}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Price per Share</p>
+                          <p className="font-semibold text-foreground">${investment.currentPrice}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Total Value</p>
+                          <p className="font-semibold text-foreground">${investment.totalValue.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {userInvestments.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No investments yet. Add your first investment to get started!</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="recommendations" className="space-y-6">
             <Card>
@@ -323,4 +512,3 @@ const Investments = () => {
 };
 
 export default Investments;
-
