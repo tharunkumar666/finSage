@@ -1,73 +1,50 @@
-# Welcome to your Lovable project
+# 💰 FinSage — AI-Driven Personal Financial Advisor
 
-## Project info
+FinSage is a modern **AI-powered financial advisory web app** designed to help users make smarter financial decisions.  
+It combines intelligent risk profiling, investment recommendations, debt management tools, and real-time insights — all in a secure, elegant, and easy-to-use interface.
 
-**URL**: https://lovable.dev/projects/42eb26a0-f51c-441f-ae69-00d2a644e616
+---
 
-## How can I edit this code?
+## 🚀 Overview
 
-There are several ways of editing your application.
+FinSage empowers students and young professionals to:
+- Understand their **financial health** through AI-driven insights.
+- Get **personalized investment suggestions** across stocks, bonds, crypto, and cash equivalents.
+- Manage **debts and loans** with repayment strategy recommendations.
+- Track **goals, progress, and reports** through a dynamic dashboard.
+- Access **premium features** securely with Stripe integration.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/42eb26a0-f51c-441f-ae69-00d2a644e616) and start prompting.
+## 🧩 Key Features
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🧠 AI Features (via Gemini API)
+- Personalized **risk profiling summaries**.
+- Smart **investment recommendations** and portfolio balancing.
+- Natural language **financial insights** and debt strategy explanations.
+- Personalized **financial news & summaries**.
 
-**Use your preferred IDE**
+### 📊 Core Modules
+| Module | Description |
+|---------|-------------|
+| **Dashboard** | Central hub showing portfolio, debt, and financial progress. |
+| **Risk Quiz** | Determines user’s investment style and tolerance. |
+| **Investments** | AI-generated investment suggestions. |
+| **Debt Advisor** | Suggests best repayment strategy (Snowball / Avalanche). |
+| **Calculators** | Includes SIP, Step-up SIP, EMI, and savings calculators. |
+| **Reports** | Visual summaries of investment and spending patterns. |
+| **Profile & Settings** | Manage personal data, preferences, and authentication. |
+| **Premium Access** | Stripe-powered secure payment for premium features. |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🏗️ Project Architecture
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/42eb26a0-f51c-441f-ae69-00d2a644e616) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```mermaid
+flowchart TD
+    A[Frontend: React, Vite, Tailwind] --> B[Backend: Supabase]
+    A --> C[Gemini API]
+    B --> D[Database: PostgreSQL]
+    B --> E[Auth & Storage: Supabase]
+    A --> F[Payments: Stripe]
