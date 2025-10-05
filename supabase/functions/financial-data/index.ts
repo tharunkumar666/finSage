@@ -17,6 +17,15 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { symbol, period = '1mo', interval = '1d' } = await req.json() as FinancialDataRequest;
 
     if (!symbol) {
@@ -36,7 +45,8 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch data for ${symbol}`);
+      console.error('Yahoo Finance API error:', response.status);
+      throw new Error('FINANCIAL_DATA_UNAVAILABLE');
     }
 
     const data = await response.json();
@@ -70,8 +80,12 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error fetching financial data:', error);
+    const errorMessage = error.message === 'FINANCIAL_DATA_UNAVAILABLE' 
+      ? 'Unable to fetch financial data at this time'
+      : 'An error occurred while processing your request';
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

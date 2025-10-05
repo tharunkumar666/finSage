@@ -1,7 +1,1 @@
 project_id = "shicrzxqugqlpxyisvpw"
-
-[functions.financial-data]
-verify_jwt = false
-
-[functions.ai-advisor]
-verify_jwt = false

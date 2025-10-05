@@ -21,6 +21,15 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { query, context } = await req.json() as AIAdvisorRequest;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
@@ -73,8 +82,7 @@ ${contextString}`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status);
       
       if (response.status === 429) {
         return new Response(
@@ -90,14 +98,14 @@ ${contextString}`;
         );
       }
 
-      throw new Error('AI Gateway request failed');
+      throw new Error('AI_SERVICE_UNAVAILABLE');
     }
 
     const data = await response.json();
     const advice = data.choices?.[0]?.message?.content;
 
     if (!advice) {
-      throw new Error('No response from AI');
+      throw new Error('AI_NO_RESPONSE');
     }
 
     return new Response(
@@ -106,8 +114,20 @@ ${contextString}`;
     );
   } catch (error) {
     console.error('Error in AI advisor function:', error);
+    
+    let errorMessage = 'An error occurred while processing your request';
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') {
+      errorMessage = 'AI service is temporarily unavailable. Please try again later.';
+    } else if (error.message === 'AI_NO_RESPONSE') {
+      errorMessage = 'Unable to generate a response. Please try again.';
+    } else if (error.message === 'LOVABLE_API_KEY is not configured') {
+      errorMessage = 'Service configuration error. Please contact support.';
+    } else if (error.message === 'Query is required') {
+      errorMessage = 'Please provide a question for the AI advisor.';
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
