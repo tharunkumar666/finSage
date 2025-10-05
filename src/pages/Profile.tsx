@@ -126,26 +126,26 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-            <User className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <User className="h-8 w-8 text-primary" />
             Profile
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-muted-foreground">
             Manage your account information and preferences
           </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Profile Picture Section */}
-          <Card className="dark:bg-gray-800 dark:border-gray-700">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Profile Picture</CardTitle>
-              <CardDescription className="dark:text-gray-300">
+              <CardTitle>Profile Picture</CardTitle>
+              <CardDescription>
                 Update your profile photo
               </CardDescription>
             </CardHeader>
@@ -153,27 +153,27 @@ const Profile = () => {
               <div className="relative">
                 <Avatar className="w-24 h-24">
                   <AvatarImage src={profileData.avatar_url} alt={profileData.name} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300 text-2xl">
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl">
                     {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0 dark:bg-gray-700 dark:border-gray-600"
+                  className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
               </div>
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+                <h3 className="font-semibold text-foreground">
                   {profileData.name || 'Your Name'}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {profileData.email}
                 </p>
               </div>
-              <Button variant="outline" className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700">
+              <Button variant="outline">
                 Change Photo
               </Button>
             </CardContent>
@@ -181,44 +181,42 @@ const Profile = () => {
 
           {/* Profile Information */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Personal Information</CardTitle>
-                <CardDescription className="dark:text-gray-300">
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
                   Update your personal details
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Full Name</Label>
+                    <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
                       value={profileData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={profileData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="country" className="text-gray-700 dark:text-gray-300">Country</Label>
+                    <Label htmlFor="country">Country</Label>
                     <Select value={profileData.country} onValueChange={(value) => handleInputChange('country', value)}>
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                      <SelectContent>
                         <SelectItem value="United States">United States</SelectItem>
                         <SelectItem value="Canada">Canada</SelectItem>
                         <SelectItem value="United Kingdom">United Kingdom</SelectItem>
@@ -232,12 +230,12 @@ const Profile = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="currency" className="text-gray-700 dark:text-gray-300">Preferred Currency</Label>
+                    <Label htmlFor="currency">Preferred Currency</Label>
                     <Select value={profileData.currency} onValueChange={(value) => handleInputChange('currency', value)}>
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                      <SelectContent>
                         <SelectItem value="USD">USD ($)</SelectItem>
                         <SelectItem value="EUR">EUR (€)</SelectItem>
                         <SelectItem value="GBP">GBP (£)</SelectItem>
@@ -251,27 +249,27 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="risk_profile" className="text-gray-700 dark:text-gray-300">Risk Profile</Label>
+                  <Label htmlFor="risk_profile">Risk Profile</Label>
                   <Select value={profileData.risk_profile} onValueChange={(value) => handleInputChange('risk_profile', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                    <SelectContent>
                       <SelectItem value="Conservative">Conservative</SelectItem>
                       <SelectItem value="Moderate">Moderate</SelectItem>
                       <SelectItem value="Aggressive">Aggressive</SelectItem>
                       <SelectItem value="Not Assessed">Not Assessed</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Take our <a href="/quiz" className="text-blue-600 hover:underline">risk assessment quiz</a> for a personalized recommendation
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Take our <a href="/quiz" className="text-primary hover:underline">risk assessment quiz</a> for a personalized recommendation
                   </p>
                 </div>
 
                 <Button 
                   onClick={updateProfile} 
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full"
                 >
                   {loading ? 'Updating...' : 'Update Profile'}
                 </Button>
@@ -279,30 +277,30 @@ const Profile = () => {
             </Card>
 
             {/* Account Stats */}
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Account Statistics</CardTitle>
-                <CardDescription className="dark:text-gray-300">
+                <CardTitle>Account Statistics</CardTitle>
+                <CardDescription>
                   Your FinSage journey at a glance
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-300">
+                  <div className="text-center p-4 bg-primary/10 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
                       {user ? Math.floor((new Date().getTime() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}
                     </div>
-                    <div className="text-sm text-green-700 dark:text-green-400">Days Active</div>
+                    <div className="text-sm text-muted-foreground">Days Active</div>
                   </div>
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-300">
+                  <div className="text-center p-4 bg-primary/10 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
                       {profileData.risk_profile !== 'Not Assessed' ? '1' : '0'}
                     </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-400">Risk Assessments</div>
+                    <div className="text-sm text-muted-foreground">Risk Assessments</div>
                   </div>
-                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-300">Free</div>
-                    <div className="text-sm text-purple-700 dark:text-purple-400">Current Plan</div>
+                  <div className="text-center p-4 bg-primary/10 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">Free</div>
+                    <div className="text-sm text-muted-foreground">Current Plan</div>
                   </div>
                 </div>
               </CardContent>
