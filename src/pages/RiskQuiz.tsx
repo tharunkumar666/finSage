@@ -15,6 +15,7 @@ const RiskQuiz = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [riskScore, setRiskScore] = useState(0);
   const [riskLevel, setRiskLevel] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const questions = [
     {
@@ -120,6 +121,9 @@ const RiskQuiz = () => {
   ];
 
   const handleAnswer = (score: number) => {
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
     const newAnswers = [...answers, score];
     setAnswers(newAnswers);
     
@@ -127,6 +131,7 @@ const RiskQuiz = () => {
     setTimeout(() => {
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
+        setIsProcessing(false);
       } else {
         calculateResult(newAnswers);
       }
@@ -152,6 +157,7 @@ const RiskQuiz = () => {
     setIsCompleted(false);
     setRiskScore(0);
     setRiskLevel('');
+    setIsProcessing(false);
   };
 
   const handleContinue = () => {
@@ -237,7 +243,8 @@ const RiskQuiz = () => {
                 <button
                   key={index}
                   onClick={() => handleAnswer(option.score)}
-                  className="w-full p-4 text-left bg-card border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors text-foreground"
+                  disabled={isProcessing}
+                  className="w-full p-4 text-left bg-card border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {option.text}
                 </button>
