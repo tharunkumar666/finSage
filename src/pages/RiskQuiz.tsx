@@ -164,26 +164,26 @@ const RiskQuiz = () => {
 
   if (isCompleted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      <div className="min-h-screen bg-background">
         <Header />
         
         <div className="max-w-2xl mx-auto px-6 py-8">
           <Card className="text-center">
             <CardContent className="p-8">
               <div className="mb-6">
-                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-gray-900">Assessment Complete!</h2>
+                <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h2 className="text-3xl font-bold text-foreground">Assessment Complete!</h2>
               </div>
               
-              <div className="bg-gradient-to-r from-green-100 to-blue-100 p-6 rounded-lg mb-6">
-                <h3 className="text-xl font-semibold mb-2">Your Risk Profile</h3>
-                <div className="text-3xl font-bold text-green-600 mb-2">{riskLevel}</div>
-                <div className="text-gray-600">Score: {riskScore}/40</div>
+              <div className="bg-muted p-6 rounded-lg mb-6">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Your Risk Profile</h3>
+                <div className="text-3xl font-bold text-primary mb-2">{riskLevel}</div>
+                <div className="text-muted-foreground">Score: {riskScore}/40</div>
               </div>
               
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Button onClick={handleContinue} className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={handleContinue}>
                     Continue to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -202,27 +202,27 @@ const RiskQuiz = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-2xl mx-auto px-6 py-8">
         <div className="mb-8 text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 p-3 rounded-xl">
-              <TrendingUp className="h-8 w-8 text-white" />
+            <div className="bg-primary p-3 rounded-xl">
+              <TrendingUp className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Risk Assessment</h1>
-          <p className="text-gray-600">Help us understand your investment preferences</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Risk Assessment</h1>
+          <p className="text-muted-foreground">Help us understand your investment preferences</p>
         </div>
 
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-muted-foreground">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-sm font-medium text-green-600">
+              <span className="text-sm font-medium text-primary">
                 {Math.round(progress)}% Complete
               </span>
             </div>
@@ -230,7 +230,7 @@ const RiskQuiz = () => {
           </CardHeader>
           
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-6">
+            <h2 className="text-xl font-semibold mb-6 text-foreground">
               {questions[currentQuestion].question}
             </h2>
             
@@ -239,7 +239,7 @@ const RiskQuiz = () => {
                 <button
                   key={index}
                   onClick={() => handleAnswer(option.score)}
-                  className="w-full p-4 text-left bg-white border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+                  className="w-full p-4 text-left bg-card border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors text-foreground"
                 >
                   {option.text}
                 </button>

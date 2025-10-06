@@ -36,16 +36,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Welcome back, Student! 👋
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Here's an overview of your financial journey
           </p>
         </div>
@@ -55,11 +55,11 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Investments</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-600" />
+              <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${mockData.totalInvestments.toLocaleString()}</div>
-              <p className="text-xs text-green-600">
+              <p className="text-xs text-primary">
                 +{mockData.monthlyReturns}% from last month
               </p>
             </CardContent>
@@ -68,11 +68,11 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Risk Profile</CardTitle>
-              <Target className="h-4 w-4 text-blue-600" />
+              <Target className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{mockData.riskProfile}</div>
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-primary">
                 Balanced growth approach
               </p>
             </CardContent>
@@ -81,11 +81,11 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Monthly Returns</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <TrendingUp className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">+{mockData.monthlyReturns}%</div>
-              <p className="text-xs text-green-600">
+              <p className="text-xs text-primary">
                 Above market average
               </p>
             </CardContent>
@@ -94,13 +94,13 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Debt</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 ${mockData.debts.reduce((total, debt) => total + debt.amount, 0).toLocaleString()}
               </div>
-              <p className="text-xs text-red-600">
+              <p className="text-xs text-destructive">
                 Avg rate: {((mockData.debts.reduce((total, debt) => total + debt.rate, 0) / mockData.debts.length)).toFixed(1)}%
               </p>
             </CardContent>
@@ -118,7 +118,7 @@ const Dashboard = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Stocks</span>
-                  <span className="text-sm text-gray-600">{mockData.portfolioAllocation.stocks}%</span>
+                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.stocks}%</span>
                 </div>
                 <Progress value={mockData.portfolioAllocation.stocks} className="h-2" />
               </div>
@@ -126,7 +126,7 @@ const Dashboard = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Bonds</span>
-                  <span className="text-sm text-gray-600">{mockData.portfolioAllocation.bonds}%</span>
+                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.bonds}%</span>
                 </div>
                 <Progress value={mockData.portfolioAllocation.bonds} className="h-2" />
               </div>
@@ -134,7 +134,7 @@ const Dashboard = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Crypto</span>
-                  <span className="text-sm text-gray-600">{mockData.portfolioAllocation.crypto}%</span>
+                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.crypto}%</span>
                 </div>
                 <Progress value={mockData.portfolioAllocation.crypto} className="h-2" />
               </div>
@@ -142,7 +142,7 @@ const Dashboard = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Cash</span>
-                  <span className="text-sm text-gray-600">{mockData.portfolioAllocation.cash}%</span>
+                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.cash}%</span>
                 </div>
                 <Progress value={mockData.portfolioAllocation.cash} className="h-2" />
               </div>
@@ -169,12 +169,12 @@ const Dashboard = () => {
                   <div key={index}>
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium text-sm">{goal.name}</h4>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
                       </span>
                     </div>
                     <Progress value={goal.progress} className="h-2" />
-                    <p className="text-xs text-gray-500 mt-1">{goal.progress}% complete</p>
+                    <p className="text-xs text-muted-foreground mt-1">{goal.progress}% complete</p>
                   </div>
                 ))}
               </div>
@@ -191,7 +191,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link to="/investments">
-                <Button className="h-20 w-full bg-green-600 hover:bg-green-700 flex flex-col space-y-2">
+                <Button className="h-20 w-full flex flex-col space-y-2">
                   <PlusCircle className="h-6 w-6" />
                   <span>Add Investment</span>
                 </Button>
@@ -231,12 +231,12 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {mockData.recentTransactions.map((transaction, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
                       <p className="font-medium text-sm">{transaction.asset}</p>
-                      <p className="text-xs text-gray-500">{transaction.date}</p>
+                      <p className="text-xs text-muted-foreground">{transaction.date}</p>
                     </div>
-                    <div className={`text-sm font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`text-sm font-medium ${transaction.amount > 0 ? 'text-primary' : 'text-destructive'}`}>
                       {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount)}
                     </div>
                   </div>
@@ -253,14 +253,14 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {mockData.debts.map((debt, index) => (
-                  <div key={index} className="border rounded-lg p-4">
+                  <div key={index} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium">{debt.name}</h4>
-                      <span className="text-sm text-gray-500">{debt.rate}% APR</span>
+                      <span className="text-sm text-muted-foreground">{debt.rate}% APR</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold">${debt.amount.toLocaleString()}</span>
-                      <span className="text-sm text-green-600">
+                      <span className="text-sm text-primary">
                         ${debt.payment}/month
                       </span>
                     </div>

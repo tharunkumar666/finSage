@@ -106,22 +106,22 @@ const Goals = () => {
   const overallProgress = totalGoalsAmount > 0 ? (totalSavedAmount / totalGoalsAmount) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-              <Target className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <Target className="h-8 w-8 text-primary" />
               Financial Goals
             </h1>
-            <p className="text-gray-600">Track and achieve your financial milestones</p>
+            <p className="text-muted-foreground">Track and achieve your financial milestones</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Goal
               </Button>
@@ -178,7 +178,7 @@ const Goals = () => {
                     id="category"
                     value={newGoal.category}
                     onChange={(e) => setNewGoal({...newGoal, category: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-input rounded-md bg-background text-foreground"
                   >
                     <option value="Investment">Investment</option>
                     <option value="Safety">Safety</option>
@@ -201,10 +201,10 @@ const Goals = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Goals</p>
-                  <p className="text-2xl font-bold text-blue-600">{goals.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Goals</p>
+                  <p className="text-2xl font-bold text-primary">{goals.length}</p>
                 </div>
-                <Target className="h-8 w-8 text-blue-600" />
+                <Target className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -213,10 +213,10 @@ const Goals = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Target</p>
-                  <p className="text-2xl font-bold text-purple-600">${totalGoalsAmount.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Target</p>
+                  <p className="text-2xl font-bold text-primary">${totalGoalsAmount.toLocaleString()}</p>
                 </div>
-                <Target className="h-8 w-8 text-purple-600" />
+                <Target className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -225,10 +225,10 @@ const Goals = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Saved</p>
-                  <p className="text-2xl font-bold text-green-600">${totalSavedAmount.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Saved</p>
+                  <p className="text-2xl font-bold text-primary">${totalSavedAmount.toLocaleString()}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -247,7 +247,7 @@ const Goals = () => {
                 <span>{Math.round(overallProgress)}%</span>
               </div>
               <Progress value={overallProgress} className="h-3" />
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>${totalSavedAmount.toLocaleString()} saved</span>
                 <span>${totalGoalsAmount.toLocaleString()} target</span>
               </div>
@@ -307,7 +307,7 @@ const Goals = () => {
                   </div>
                   
                   {goal.deadline && (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       Target: {new Date(goal.deadline).toLocaleDateString()}
                     </div>
                   )}
