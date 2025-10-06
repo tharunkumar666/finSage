@@ -135,12 +135,10 @@ const RiskQuiz = () => {
 
   const calculateResult = (finalAnswers: number[]) => {
     const totalScore = finalAnswers.reduce((sum, score) => sum + score, 0);
-    const maxScore = questions.length * 4;
-    const percentage = (totalScore / maxScore) * 100;
     
     let level = '';
-    if (percentage <= 30) level = 'Conservative';
-    else if (percentage <= 60) level = 'Moderate';
+    if (totalScore <= 20) level = 'Conservative';
+    else if (totalScore <= 30) level = 'Moderate';
     else level = 'Aggressive';
     
     setRiskScore(totalScore);
