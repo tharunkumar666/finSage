@@ -12,6 +12,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { z } from 'zod';
+
+const profileSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  country: z.string().min(1, "Country is required"),
+  currency: z.enum(["USD", "EUR", "GBP", "CAD", "AUD", "JPY", "INR"]),
+  risk_profile: z.enum(["Conservative", "Moderate", "Aggressive", "Not Assessed"]),
+  avatar_url: z.string().url().optional().or(z.literal(''))
+});
 
 const Profile = () => {
   const { user } = useAuth();
@@ -80,16 +90,30 @@ const Profile = () => {
 
     setLoading(true);
     try {
+      // Validate input data
+      const validationResult = profileSchema.safeParse(profileData);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(e => e.message).join(', ');
+        toast({
+          title: "Validation Error",
+          description: errors,
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
           user_id: user.id,
-          name: profileData.name,
-          email: profileData.email,
-          country: profileData.country,
-          currency: profileData.currency,
-          risk_profile: profileData.risk_profile,
-          avatar_url: profileData.avatar_url
+          name: validationResult.data.name,
+          email: validationResult.data.email,
+          country: validationResult.data.country,
+          currency: validationResult.data.currency,
+          risk_profile: validationResult.data.risk_profile,
+          avatar_url: validationResult.data.avatar_url || ''
         });
 
       if (error) throw error;
@@ -217,6 +241,7 @@ const Profile = () => {
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="India">India</SelectItem>
                         <SelectItem value="United States">United States</SelectItem>
                         <SelectItem value="Canada">Canada</SelectItem>
                         <SelectItem value="United Kingdom">United Kingdom</SelectItem>
@@ -224,7 +249,6 @@ const Profile = () => {
                         <SelectItem value="Germany">Germany</SelectItem>
                         <SelectItem value="France">France</SelectItem>
                         <SelectItem value="Japan">Japan</SelectItem>
-                        <SelectItem value="India">India</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -236,13 +260,13 @@ const Profile = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="INR">INR (₹)</SelectItem>
                         <SelectItem value="USD">USD ($)</SelectItem>
                         <SelectItem value="EUR">EUR (€)</SelectItem>
                         <SelectItem value="GBP">GBP (£)</SelectItem>
                         <SelectItem value="CAD">CAD (C$)</SelectItem>
                         <SelectItem value="AUD">AUD (A$)</SelectItem>
                         <SelectItem value="JPY">JPY (¥)</SelectItem>
-                        <SelectItem value="INR">INR (₹)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
