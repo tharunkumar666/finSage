@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Key, Globe, Bell, Shield, Check, User, Trash2, Smartphone, Monitor, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,10 +101,31 @@ const Settings = () => {
 
   const submitPasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+    
+    // Validate password complexity
+    const passwordSchema = z.object({
+      newPassword: z.string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number")
+        .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+      confirmPassword: z.string()
+    }).refine(data => data.newPassword === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword"]
+    });
+
+    const validationResult = passwordSchema.safeParse({
+      newPassword: passwordFormData.newPassword,
+      confirmPassword: passwordFormData.confirmPassword
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(e => e.message).join(', ');
       toast({
-        title: "Error",
-        description: "Passwords don't match",
+        title: "Validation Error",
+        description: errors,
         variant: "destructive"
       });
       return;

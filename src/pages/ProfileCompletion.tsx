@@ -13,6 +13,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { z } from 'zod';
+
+// Validation schemas
+const emergencyContactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  phone: z.string().regex(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/, "Invalid phone number format"),
+  email: z.string().email("Invalid email format").max(255, "Email must be less than 255 characters").optional().or(z.literal('')),
+  relationship: z.string().min(1, "Relationship is required").max(50, "Relationship must be less than 50 characters")
+});
+
+const bankAccountSchema = z.object({
+  bankName: z.string().trim().min(1, "Bank name is required").max(100, "Bank name must be less than 100 characters"),
+  accountType: z.string().min(1, "Account type is required"),
+  accountNumberLastFour: z.string().regex(/^[0-9]{4}$/, "Must be exactly 4 digits")
+});
 
 const ProfileCompletion = () => {
   const { user } = useAuth();
@@ -158,14 +173,28 @@ const ProfileCompletion = () => {
     setLoading(true);
 
     try {
+      // Validate input
+      const validationResult = emergencyContactSchema.safeParse(emergencyContact);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues.map(e => e.message).join(', ');
+        toast({
+          title: "Validation Error",
+          description: errors,
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       await supabase
         .from('emergency_contacts')
         .insert({
           user_id: user.id,
-          name: emergencyContact.name,
-          relationship: emergencyContact.relationship,
-          phone: emergencyContact.phone,
-          email: emergencyContact.email,
+          name: validationResult.data.name,
+          relationship: validationResult.data.relationship,
+          phone: validationResult.data.phone,
+          email: validationResult.data.email || null,
           is_primary: true
         });
 
@@ -174,7 +203,7 @@ const ProfileCompletion = () => {
         p_action: 'emergency_contact_added',
         p_description: 'Emergency contact added',
         p_category: 'profile',
-        p_metadata: { relationship: emergencyContact.relationship }
+        p_metadata: { relationship: validationResult.data.relationship }
       });
 
       setCompletionSteps(prev => ({ ...prev, emergencyContact: true }));
@@ -200,13 +229,27 @@ const ProfileCompletion = () => {
     setLoading(true);
 
     try {
+      // Validate input
+      const validationResult = bankAccountSchema.safeParse(bankAccount);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues.map(e => e.message).join(', ');
+        toast({
+          title: "Validation Error",
+          description: errors,
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       await supabase
         .from('bank_accounts')
         .insert({
           user_id: user.id,
-          bank_name: bankAccount.bankName,
-          account_type: bankAccount.accountType,
-          account_number_last_four: bankAccount.accountNumberLastFour,
+          bank_name: validationResult.data.bankName,
+          account_type: validationResult.data.accountType,
+          account_number_last_four: validationResult.data.accountNumberLastFour,
           is_primary: true
         });
 
@@ -215,7 +258,7 @@ const ProfileCompletion = () => {
         p_action: 'bank_account_connected',
         p_description: 'Bank account connected',
         p_category: 'account',
-        p_metadata: { bank_name: bankAccount.bankName, account_type: bankAccount.accountType }
+        p_metadata: { bank_name: validationResult.data.bankName, account_type: validationResult.data.accountType }
       });
 
       setCompletionSteps(prev => ({ ...prev, bankAccount: true }));
@@ -432,6 +475,7 @@ const ProfileCompletion = () => {
                           id="emergency-name"
                           value={emergencyContact.name}
                           onChange={(e) => setEmergencyContact({...emergencyContact, name: e.target.value})}
+                          maxLength={100}
                           className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
@@ -461,6 +505,7 @@ const ProfileCompletion = () => {
                           type="tel"
                           value={emergencyContact.phone}
                           onChange={(e) => setEmergencyContact({...emergencyContact, phone: e.target.value})}
+                          maxLength={20}
                           className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
@@ -471,6 +516,7 @@ const ProfileCompletion = () => {
                           type="email"
                           value={emergencyContact.email}
                           onChange={(e) => setEmergencyContact({...emergencyContact, email: e.target.value})}
+                          maxLength={255}
                           className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
@@ -526,6 +572,7 @@ const ProfileCompletion = () => {
                           value={bankAccount.bankName}
                           onChange={(e) => setBankAccount({...bankAccount, bankName: e.target.value})}
                           placeholder="e.g., Chase, Bank of America"
+                          maxLength={100}
                           className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
