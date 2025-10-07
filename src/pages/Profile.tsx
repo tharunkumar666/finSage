@@ -94,7 +94,7 @@ const Profile = () => {
       const validationResult = profileSchema.safeParse(profileData);
       
       if (!validationResult.success) {
-        const errors = validationResult.error.errors.map(e => e.message).join(', ');
+        const errors = validationResult.error.issues.map(e => e.message).join(', ');
         toast({
           title: "Validation Error",
           description: errors,
