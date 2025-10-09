@@ -39,7 +39,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             document.documentElement.classList.toggle('dark', data.theme === 'dark');
           }
         } catch (error) {
-          console.error('Error loading theme:', error);
+          if (import.meta.env.DEV) {
+            console.error('Error loading theme:', error);
+          }
         }
       } else {
         const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -66,7 +68,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             theme: newTheme
           });
       } catch (error) {
-        console.error('Error saving theme:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error saving theme:', error);
+        }
       }
     } else {
       localStorage.setItem('theme', newTheme);

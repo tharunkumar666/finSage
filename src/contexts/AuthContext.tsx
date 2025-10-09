@@ -69,9 +69,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         p_category: category,
         p_metadata: metadata || null
       });
-    } catch (error) {
-      console.error('Error logging activity:', error);
-    }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Error logging activity:', error);
+        }
+      }
   };
 
   const signUp = async (email: string, password: string, metadata?: any) => {

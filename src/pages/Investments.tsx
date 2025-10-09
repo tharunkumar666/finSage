@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical } from 'lucide-react';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +16,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
+const investmentSchema = z.object({
+  name: z.string().min(1, 'Investment name is required').max(100, 'Name must be less than 100 characters'),
+  symbol: z.string().min(1, 'Symbol is required').max(10, 'Symbol must be less than 10 characters'),
+  shares: z.number().positive('Shares must be greater than 0'),
+  currentPrice: z.number().positive('Price must be greater than 0')
+});
+
 const Investments = () => {
+  const { toast } = useToast();
   const [selectedRiskProfile] = useState('Moderate');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [userInvestments, setUserInvestments] = useState([
@@ -107,11 +117,12 @@ const Investments = () => {
   ];
 
   const addInvestment = () => {
-    if (newInvestment.name && newInvestment.symbol && newInvestment.shares > 0 && newInvestment.currentPrice > 0) {
-      const totalValue = newInvestment.shares * newInvestment.currentPrice;
+    try {
+      const validatedData = investmentSchema.parse(newInvestment);
+      const totalValue = validatedData.shares * validatedData.currentPrice;
       const investment = {
         id: Date.now(),
-        ...newInvestment,
+        ...validatedData,
         totalValue,
         gainLoss: 0,
         gainLossPercent: 0
@@ -119,6 +130,18 @@ const Investments = () => {
       setUserInvestments([...userInvestments, investment]);
       setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0 });
       setIsAddDialogOpen(false);
+      toast({
+        title: 'Investment added',
+        description: 'Your investment has been successfully added to your portfolio.'
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Invalid input',
+          description: error.issues[0].message,
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -187,8 +210,10 @@ const Investments = () => {
                   <Input
                     id="shares"
                     type="number"
+                    min="0.001"
+                    step="0.001"
                     value={newInvestment.shares || ''}
-                    onChange={(e) => setNewInvestment({...newInvestment, shares: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setNewInvestment({...newInvestment, shares: parseFloat(e.target.value) || 0})}
                     placeholder="e.g., 10"
                   />
                 </div>
@@ -197,6 +222,7 @@ const Investments = () => {
                   <Input
                     id="price"
                     type="number"
+                    min="0.01"
                     step="0.01"
                     value={newInvestment.currentPrice || ''}
                     onChange={(e) => setNewInvestment({...newInvestment, currentPrice: parseFloat(e.target.value) || 0})}
