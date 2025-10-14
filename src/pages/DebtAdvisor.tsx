@@ -185,7 +185,7 @@ const DebtAdvisor = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Label htmlFor="extraPayment" className="text-foreground">Extra Monthly Payment ($)</Label>
+                  <Label htmlFor="extraPayment" className="text-foreground">Extra Monthly Payment (₹)</Label>
                   <Input
                     id="extraPayment"
                     type="number"
@@ -215,7 +215,7 @@ const DebtAdvisor = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="balance" className="text-foreground">Balance ($)</Label>
+                  <Label htmlFor="balance" className="text-foreground">Balance (₹)</Label>
                   <Input
                     id="balance"
                     type="number"
@@ -226,7 +226,7 @@ const DebtAdvisor = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="minPayment" className="text-foreground">Minimum Payment ($)</Label>
+                  <Label htmlFor="minPayment" className="text-foreground">Minimum Payment (₹)</Label>
                   <Input
                     id="minPayment"
                     type="number"
@@ -278,7 +278,7 @@ const DebtAdvisor = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Debt</p>
-                      <p className="text-2xl font-bold text-red-600">${results.totalDebt.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-red-600">₹{results.totalDebt.toLocaleString()}</p>
                     </div>
                     <AlertCircle className="h-8 w-8 text-red-600" />
                   </div>
@@ -302,7 +302,7 @@ const DebtAdvisor = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Interest</p>
-                      <p className="text-2xl font-bold text-orange-600">${results.totalInterest.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-orange-600">₹{results.totalInterest.toLocaleString()}</p>
                     </div>
                     <TrendingDown className="h-8 w-8 text-orange-600" />
                   </div>
@@ -356,11 +356,11 @@ const DebtAdvisor = () => {
                       <div className="grid md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">Balance</p>
-                          <p className="font-semibold text-foreground">${debt.balance.toLocaleString()}</p>
+                          <p className="font-semibold text-foreground">₹{debt.balance.toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Monthly Payment</p>
-                          <p className="font-semibold text-foreground">${debt.monthlyPayment.toLocaleString()}</p>
+                          <p className="font-semibold text-foreground">₹{debt.monthlyPayment.toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Payoff Time</p>
@@ -368,7 +368,7 @@ const DebtAdvisor = () => {
                         </div>
                         <div>
                           <p className="text-muted-foreground">Interest Paid</p>
-                          <p className="font-semibold text-foreground">${debt.interestPaid.toLocaleString()}</p>
+                          <p className="font-semibold text-foreground">₹{debt.interestPaid.toLocaleString()}</p>
                         </div>
                       </div>
                       
@@ -407,7 +407,7 @@ const DebtAdvisor = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="editBalance" className="text-foreground">Balance ($)</Label>
+                  <Label htmlFor="editBalance" className="text-foreground">Balance (₹)</Label>
                   <Input
                     id="editBalance"
                     type="number"
@@ -417,7 +417,7 @@ const DebtAdvisor = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="editMinPayment" className="text-foreground">Minimum Payment ($)</Label>
+                  <Label htmlFor="editMinPayment" className="text-foreground">Minimum Payment (₹)</Label>
                   <Input
                     id="editMinPayment"
                     type="number"

@@ -147,7 +147,7 @@ const InvestmentFilter = ({ isOpen, onOpenChange, onApplyFilters, onClearFilters
           {/* Price Range */}
           <div>
             <Label className="text-base font-medium mb-3 block">
-              Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+              Price Range: ₹{filters.priceRange[0]} - ₹{filters.priceRange[1]}
             </Label>
             <Slider
               value={filters.priceRange}
@@ -168,9 +168,9 @@ const InvestmentFilter = ({ isOpen, onOpenChange, onApplyFilters, onClearFilters
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All</SelectItem>
-                <SelectItem value="small">Small Cap (&lt; $2B)</SelectItem>
-                <SelectItem value="mid">Mid Cap ($2B - $10B)</SelectItem>
-                <SelectItem value="large">Large Cap (&gt; $10B)</SelectItem>
+                <SelectItem value="small">Small Cap (&lt; ₹2B)</SelectItem>
+                <SelectItem value="mid">Mid Cap (₹2B - ₹10B)</SelectItem>
+                <SelectItem value="large">Large Cap (&gt; ₹10B)</SelectItem>
               </SelectContent>
             </Select>
           </div>

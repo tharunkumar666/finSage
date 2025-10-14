@@ -143,7 +143,7 @@ const Goals = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="targetAmount">Target Amount ($)</Label>
+                  <Label htmlFor="targetAmount">Target Amount (₹)</Label>
                   <Input
                     id="targetAmount"
                     type="number"
@@ -153,7 +153,7 @@ const Goals = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="currentAmount">Current Amount ($)</Label>
+                  <Label htmlFor="currentAmount">Current Amount (₹)</Label>
                   <Input
                     id="currentAmount"
                     type="number"
@@ -214,7 +214,7 @@ const Goals = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Target</p>
-                  <p className="text-2xl font-bold text-primary">${totalGoalsAmount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">₹{totalGoalsAmount.toLocaleString()}</p>
                 </div>
                 <Target className="h-8 w-8 text-primary" />
               </div>
@@ -226,7 +226,7 @@ const Goals = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Saved</p>
-                  <p className="text-2xl font-bold text-primary">${totalSavedAmount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">₹{totalSavedAmount.toLocaleString()}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-primary" />
               </div>
@@ -248,8 +248,8 @@ const Goals = () => {
               </div>
               <Progress value={overallProgress} className="h-3" />
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>${totalSavedAmount.toLocaleString()} saved</span>
-                <span>${totalGoalsAmount.toLocaleString()} target</span>
+                <span>₹{totalSavedAmount.toLocaleString()} saved</span>
+                <span>₹{totalGoalsAmount.toLocaleString()} target</span>
               </div>
             </div>
           </CardContent>
@@ -291,10 +291,10 @@ const Goals = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-green-600">
-                      ${goal.current.toLocaleString()}
+                      ₹{goal.current.toLocaleString()}
                     </span>
                     <span className="text-gray-500">
-                      of ${goal.target.toLocaleString()}
+                      of ₹{goal.target.toLocaleString()}
                     </span>
                   </div>
                   
@@ -366,7 +366,7 @@ const Goals = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="editTarget">Target Amount ($)</Label>
+                  <Label htmlFor="editTarget">Target Amount (₹)</Label>
                   <Input
                     id="editTarget"
                     type="number"
@@ -376,7 +376,7 @@ const Goals = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="editCurrent">Current Amount ($)</Label>
+                  <Label htmlFor="editCurrent">Current Amount (₹)</Label>
                   <Input
                     id="editCurrent"
                     type="number"

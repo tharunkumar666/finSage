@@ -218,7 +218,7 @@ const Investments = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="price">Current Price ($)</Label>
+                  <Label htmlFor="price">Current Price (₹)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -245,10 +245,10 @@ const Investments = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Portfolio</p>
                   <p className="text-2xl font-bold text-foreground">
-                    ${portfolioData.totalValue.toLocaleString()}
+                    ₹{portfolioData.totalValue.toLocaleString()}
                   </p>
                   <p className={`text-sm ${portfolioData.todayChangePercent >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}${portfolioData.todayChange} 
+                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}₹{portfolioData.todayChange}
                     ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent}%)
                   </p>
                 </div>
@@ -264,7 +264,7 @@ const Investments = () => {
                   <div>
                     <p className="text-sm text-muted-foreground capitalize">{key}</p>
                     <p className="text-xl font-bold text-foreground">
-                      ${data.value.toLocaleString()}
+                      ₹{data.value.toLocaleString()}
                     </p>
                     <p className={`text-xs ${data.change >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
                       {data.change >= 0 ? '+' : ''}{data.change}%
@@ -309,9 +309,9 @@ const Investments = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="text-right">
-                            <p className="text-lg font-bold text-foreground">${investment.totalValue.toLocaleString()}</p>
+                            <p className="text-lg font-bold text-foreground">₹{investment.totalValue.toLocaleString()}</p>
                             <p className={`text-sm ${investment.gainLoss >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                              {investment.gainLoss >= 0 ? '+' : ''}${investment.gainLoss} ({investment.gainLossPercent >= 0 ? '+' : ''}{investment.gainLossPercent}%)
+                              {investment.gainLoss >= 0 ? '+' : ''}₹{investment.gainLoss} ({investment.gainLossPercent >= 0 ? '+' : ''}{investment.gainLossPercent}%)
                             </p>
                           </div>
                           <DropdownMenu>
@@ -344,11 +344,11 @@ const Investments = () => {
                         </div>
                         <div>
                           <p className="text-muted-foreground">Price per Share</p>
-                          <p className="font-semibold text-foreground">${investment.currentPrice}</p>
+                          <p className="font-semibold text-foreground">₹{investment.currentPrice}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Total Value</p>
-                          <p className="font-semibold text-foreground">${investment.totalValue.toLocaleString()}</p>
+                          <p className="font-semibold text-foreground">₹{investment.totalValue.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>

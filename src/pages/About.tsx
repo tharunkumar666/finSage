@@ -133,7 +133,7 @@ const About = () => {
                 <p className="text-gray-600">Students Helped</p>
               </div>
               <div>
-                <div className="text-3xl font-bold text-blue-600 mb-2">$50M+</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">₹50M+</div>
                 <p className="text-gray-600">Debt Optimized</p>
               </div>
               <div>

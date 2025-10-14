@@ -298,11 +298,11 @@ const Reports = () => {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-red-50 p-4 rounded-lg text-center">
                     <h3 className="text-sm text-red-600 mb-1">Total Debt</h3>
-                    <p className="text-2xl font-bold text-red-700">${debtAnalysis.totalDebt.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-red-700">₹{debtAnalysis.totalDebt.toLocaleString()}</p>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg text-center">
                     <h3 className="text-sm text-orange-600 mb-1">Monthly Payments</h3>
-                    <p className="text-2xl font-bold text-orange-700">${debtAnalysis.monthlyPayments}</p>
+                    <p className="text-2xl font-bold text-orange-700">₹{debtAnalysis.monthlyPayments}</p>
                   </div>
                   <div className="bg-yellow-50 p-4 rounded-lg text-center">
                     <h3 className="text-sm text-yellow-600 mb-1">Avg Interest Rate</h3>
@@ -325,7 +325,7 @@ const Reports = () => {
                 <div className="space-y-4">
                   <div className="p-4 bg-green-50 rounded-lg">
                     <h4 className="font-semibold text-green-800 mb-2">Potential Savings</h4>
-                    <p className="text-lg font-bold text-green-700">${debtAnalysis.interestSavings.toLocaleString()}</p>
+                    <p className="text-lg font-bold text-green-700">₹{debtAnalysis.interestSavings.toLocaleString()}</p>
                     <p className="text-sm text-green-700">
                       By following the debt avalanche method, you could save this much in interest payments.
                     </p>

@@ -92,11 +92,11 @@ const InvestmentDetails = ({ investment, isOpen, onClose }: InvestmentDetailsPro
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold">
-                ${typeof investment.price === 'number' ? investment.price.toFixed(2) : investment.price}
+                ₹{typeof investment.price === 'number' ? investment.price.toFixed(2) : investment.price}
               </div>
               {investment.change !== undefined && (
                 <div className={`text-sm ${investment.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {investment.change >= 0 ? '+' : ''}${investment.change} ({investment.changePercent >= 0 ? '+' : ''}{investment.changePercent}%)
+                  {investment.change >= 0 ? '+' : ''}₹{investment.change} ({investment.changePercent >= 0 ? '+' : ''}{investment.changePercent}%)
                 </div>
               )}
             </div>
@@ -159,7 +159,7 @@ const InvestmentDetails = ({ investment, isOpen, onClose }: InvestmentDetailsPro
                   {investment.marketCap && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Market Cap</span>
-                      <span className="font-medium">${investment.marketCap}</span>
+                      <span className="font-medium">₹{investment.marketCap}</span>
                     </div>
                   )}
                   

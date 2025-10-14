@@ -58,7 +58,7 @@ const Dashboard = () => {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${mockData.totalInvestments.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{mockData.totalInvestments.toLocaleString()}</div>
               <p className="text-xs text-primary">
                 +{mockData.monthlyReturns}% from last month
               </p>
@@ -98,7 +98,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${mockData.debts.reduce((total, debt) => total + debt.amount, 0).toLocaleString()}
+                ₹{mockData.debts.reduce((total, debt) => total + debt.amount, 0).toLocaleString()}
               </div>
               <p className="text-xs text-destructive">
                 Avg rate: {((mockData.debts.reduce((total, debt) => total + debt.rate, 0) / mockData.debts.length)).toFixed(1)}%
@@ -170,7 +170,7 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium text-sm">{goal.name}</h4>
                       <span className="text-sm text-muted-foreground">
-                        ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
+                        ₹{goal.current.toLocaleString()} / ₹{goal.target.toLocaleString()}
                       </span>
                     </div>
                     <Progress value={goal.progress} className="h-2" />
@@ -237,7 +237,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground">{transaction.date}</p>
                     </div>
                     <div className={`text-sm font-medium ${transaction.amount > 0 ? 'text-primary' : 'text-destructive'}`}>
-                      {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount)}
+                      {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount)}
                     </div>
                   </div>
                 ))}
@@ -259,9 +259,9 @@ const Dashboard = () => {
                       <span className="text-sm text-muted-foreground">{debt.rate}% APR</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold">${debt.amount.toLocaleString()}</span>
+                      <span className="text-lg font-bold">₹{debt.amount.toLocaleString()}</span>
                       <span className="text-sm text-primary">
-                        ${debt.payment}/month
+                        ₹{debt.payment}/month
                       </span>
                     </div>
                     <Progress value={(debt.payment / debt.amount) * 100} className="h-2 mt-2" />
