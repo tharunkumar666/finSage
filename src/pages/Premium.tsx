@@ -147,7 +147,7 @@ const Premium = () => {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">${plan.price}</span>
+                  <span className="text-4xl font-bold">₹{plan.price}</span>
                   <span className="text-gray-600 ml-2">{plan.period}</span>
                 </div>
               </CardHeader>

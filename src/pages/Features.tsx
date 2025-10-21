@@ -193,7 +193,7 @@ const Features = () => {
                 <p className="text-gray-600">Active Users</p>
               </div>
               <div>
-                <div className="text-3xl font-bold text-blue-600 mb-2">$50M+</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">₹50M+</div>
                 <p className="text-gray-600">Managed Assets</p>
               </div>
               <div>

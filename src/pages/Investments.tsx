@@ -445,7 +445,7 @@ const Investments = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium capitalize text-muted-foreground">{key}</span>
                           <span className="text-sm text-muted-foreground">
-                            {data.percentage}% (${data.value.toLocaleString()})
+                            {data.percentage}% (₹{data.value.toLocaleString()})
                           </span>
                         </div>
                         <Progress value={data.percentage} className="h-2" />

@@ -336,7 +336,7 @@ const Reports = () => {
                     <ul className="text-sm text-blue-700 space-y-1">
                       <li>• Focus on high-interest debt first</li>
                       <li>• Consider debt consolidation options</li>
-                      <li>• Increase monthly payments by $100</li>
+                      <li>• Increase monthly payments by ₹100</li>
                       <li>• Use windfalls for debt reduction</li>
                     </ul>
                   </div>
