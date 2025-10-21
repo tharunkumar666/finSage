@@ -25,6 +25,7 @@ import Contact from "./pages/Contact";
 import Features from "./pages/Features";
 import Goals from "./pages/Goals";
 import ProfileCompletion from "./pages/ProfileCompletion";
+import InvestmentJourney from "./pages/InvestmentJourney";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/auth/register" element={<Register />} />
               <Route path="/profile-completion" element={<ProtectedRoute><ProfileCompletion /></ProtectedRoute>} />
               <Route path="/quiz" element={<ProtectedRoute><RiskQuiz /></ProtectedRoute>} />
+              <Route path="/investment-journey" element={<ProtectedRoute><InvestmentJourney /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/investments" element={<ProtectedRoute><Investments /></ProtectedRoute>} />
               <Route path="/debt" element={<ProtectedRoute><DebtAdvisor /></ProtectedRoute>} />

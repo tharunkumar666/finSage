@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { supabase } from '@/integrations/supabase/client';
 
 const RiskQuiz = () => {
   const navigate = useNavigate();
@@ -16,6 +17,29 @@ const RiskQuiz = () => {
   const [riskScore, setRiskScore] = useState(0);
   const [riskLevel, setRiskLevel] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasInvestments, setHasInvestments] = useState(false);
+
+  useEffect(() => {
+    checkExistingInvestments();
+  }, []);
+
+  const checkExistingInvestments = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('investments')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (error) throw error;
+      setHasInvestments(data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking investments:', error);
+    }
+  };
 
   const questions = [
     {
@@ -138,7 +162,7 @@ const RiskQuiz = () => {
     }, 500);
   };
 
-  const calculateResult = (finalAnswers: number[]) => {
+  const calculateResult = async (finalAnswers: number[]) => {
     const totalScore = finalAnswers.reduce((sum, score) => sum + score, 0);
     
     let level = '';
@@ -148,6 +172,20 @@ const RiskQuiz = () => {
     
     setRiskScore(totalScore);
     setRiskLevel(level);
+
+    // Update user profile with risk assessment
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ risk_profile: level })
+          .eq('user_id', user.id);
+      }
+    } catch (error) {
+      console.error('Error updating risk profile:', error);
+    }
+
     setIsCompleted(true);
   };
 
@@ -161,6 +199,10 @@ const RiskQuiz = () => {
   };
 
   const handleContinue = () => {
+    navigate('/investment-journey');
+  };
+
+  const handleGoToDashboard = () => {
     navigate('/dashboard');
   };
 
@@ -187,12 +229,19 @@ const RiskQuiz = () => {
               
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Button onClick={handleContinue}>
-                    Continue to Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" onClick={handleStartOver}>
-                    Retake Assessment
+                  {hasInvestments ? (
+                    <Button onClick={handleContinue}>
+                      Improve Investment
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button onClick={handleContinue}>
+                      Start Investment Journey
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={hasInvestments ? handleGoToDashboard : handleStartOver}>
+                    {hasInvestments ? 'Go to Dashboard' : 'Retake Assessment'}
                   </Button>
                 </div>
               </div>
