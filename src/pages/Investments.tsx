@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
@@ -15,60 +15,121 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { supabase } from '@/integrations/supabase/client';
 
 const investmentSchema = z.object({
-  name: z.string().min(1, 'Investment name is required').max(100, 'Name must be less than 100 characters'),
-  symbol: z.string().min(1, 'Symbol is required').max(10, 'Symbol must be less than 10 characters'),
+  name: z.string().trim().min(1, 'Investment name is required').max(100, 'Name must be less than 100 characters'),
+  symbol: z.string().trim().min(1, 'Symbol is required').max(10, 'Symbol must be less than 10 characters'),
   shares: z.number().positive('Shares must be greater than 0'),
-  currentPrice: z.number().positive('Price must be greater than 0')
+  currentPrice: z.number().positive('Price must be greater than 0'),
+  purchasePrice: z.number().positive('Purchase price must be greater than 0').optional(),
+  purchaseDate: z.string().optional()
 });
+
+interface Investment {
+  id: string;
+  name: string;
+  symbol: string;
+  shares: number;
+  current_price: number;
+  purchase_price?: number;
+  purchase_date?: string;
+  totalValue: number;
+  gainLoss: number;
+  gainLossPercent: number;
+}
 
 const Investments = () => {
   const { toast } = useToast();
   const [selectedRiskProfile] = useState('Moderate');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [userInvestments, setUserInvestments] = useState([
-    {
-      id: 1,
-      name: 'Reliance Industries',
-      symbol: 'RELIANCE',
-      shares: 10,
-      currentPrice: 2845.50,
-      totalValue: 28455,
-      gainLoss: 2150.50,
-      gainLossPercent: 8.2
-    },
-    {
-      id: 2,
-      name: 'Tata Consultancy Services',
-      symbol: 'TCS',
-      shares: 5,
-      currentPrice: 3680.75,
-      totalValue: 18403.75,
-      gainLoss: -850.25,
-      gainLossPercent: -4.4
-    }
-  ]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [userInvestments, setUserInvestments] = useState<Investment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
 
   const [newInvestment, setNewInvestment] = useState({
     name: '',
     symbol: '',
     shares: 0,
-    currentPrice: 0
+    currentPrice: 0,
+    purchasePrice: 0,
+    purchaseDate: new Date().toISOString().split('T')[0]
   });
 
-  // Mock investment data
-  const portfolioData = {
-    totalValue: 15420,
-    todayChange: 125.50,
-    todayChangePercent: 0.82,
-    allocation: {
-      stocks: { value: 6939, percentage: 45, change: 2.1 },
-      bonds: { value: 3855, percentage: 25, change: 0.5 },
-      crypto: { value: 2313, percentage: 15, change: -1.2 },
-      cash: { value: 2313, percentage: 15, change: 0.0 }
+  useEffect(() => {
+    fetchInvestments();
+  }, []);
+
+  const fetchInvestments = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('investments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedInvestments: Investment[] = (data || []).map(inv => {
+        const totalValue = Number(inv.shares) * Number(inv.current_price);
+        const purchaseValue = inv.purchase_price ? Number(inv.shares) * Number(inv.purchase_price) : totalValue;
+        const gainLoss = totalValue - purchaseValue;
+        const gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+
+        return {
+          id: inv.id,
+          name: inv.name,
+          symbol: inv.symbol,
+          shares: Number(inv.shares),
+          current_price: Number(inv.current_price),
+          purchase_price: inv.purchase_price ? Number(inv.purchase_price) : undefined,
+          purchase_date: inv.purchase_date,
+          totalValue,
+          gainLoss,
+          gainLossPercent
+        };
+      });
+
+      setUserInvestments(formattedInvestments);
+    } catch (error) {
+      console.error('Error fetching investments:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load investments',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Calculate portfolio data from actual investments
+  const calculatePortfolioData = () => {
+    const totalValue = userInvestments.reduce((sum, inv) => sum + inv.totalValue, 0);
+    const totalGainLoss = userInvestments.reduce((sum, inv) => sum + inv.gainLoss, 0);
+    const todayChangePercent = totalValue > 0 ? (totalGainLoss / (totalValue - totalGainLoss)) * 100 : 0;
+
+    return {
+      totalValue,
+      todayChange: totalGainLoss,
+      todayChangePercent,
+      allocation: {
+        stocks: { value: totalValue * 0.45, percentage: 45, change: 2.1 },
+        bonds: { value: totalValue * 0.25, percentage: 25, change: 0.5 },
+        crypto: { value: totalValue * 0.15, percentage: 15, change: -1.2 },
+        cash: { value: totalValue * 0.15, percentage: 15, change: 0.0 }
+      }
+    };
+  };
+
+  const portfolioData = calculatePortfolioData();
 
   const recommendedInvestments = [
     {
@@ -116,19 +177,36 @@ const Investments = () => {
     { date: '2024-01-01', type: 'Dividend', asset: 'TCS', amount: 750, shares: 0, price: 0 }
   ];
 
-  const addInvestment = () => {
+  const addInvestment = async () => {
     try {
       const validatedData = investmentSchema.parse(newInvestment);
-      const totalValue = validatedData.shares * validatedData.currentPrice;
-      const investment = {
-        id: Date.now(),
-        ...validatedData,
-        totalValue,
-        gainLoss: 0,
-        gainLossPercent: 0
-      };
-      setUserInvestments([...userInvestments, investment]);
-      setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0 });
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to add investments',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('investments')
+        .insert({
+          user_id: user.id,
+          name: validatedData.name,
+          symbol: validatedData.symbol,
+          shares: validatedData.shares,
+          current_price: validatedData.currentPrice,
+          purchase_price: validatedData.purchasePrice || validatedData.currentPrice,
+          purchase_date: validatedData.purchaseDate || new Date().toISOString().split('T')[0]
+        });
+
+      if (error) throw error;
+
+      await fetchInvestments();
+      setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0, purchasePrice: 0, purchaseDate: new Date().toISOString().split('T')[0] });
       setIsAddDialogOpen(false);
       toast({
         title: 'Investment added',
@@ -141,12 +219,93 @@ const Investments = () => {
           description: error.issues[0].message,
           variant: 'destructive'
         });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add investment',
+          variant: 'destructive'
+        });
       }
     }
   };
 
-  const removeInvestment = (id: number) => {
-    setUserInvestments(userInvestments.filter(inv => inv.id !== id));
+  const updateInvestment = async () => {
+    if (!editingInvestment) return;
+
+    try {
+      const validatedData = investmentSchema.parse({
+        name: editingInvestment.name,
+        symbol: editingInvestment.symbol,
+        shares: editingInvestment.shares,
+        currentPrice: editingInvestment.current_price,
+        purchasePrice: editingInvestment.purchase_price,
+        purchaseDate: editingInvestment.purchase_date
+      });
+
+      const { error } = await supabase
+        .from('investments')
+        .update({
+          name: validatedData.name,
+          symbol: validatedData.symbol,
+          shares: validatedData.shares,
+          current_price: validatedData.currentPrice,
+          purchase_price: validatedData.purchasePrice,
+          purchase_date: validatedData.purchaseDate
+        })
+        .eq('id', editingInvestment.id);
+
+      if (error) throw error;
+
+      await fetchInvestments();
+      setIsEditDialogOpen(false);
+      setEditingInvestment(null);
+      toast({
+        title: 'Investment updated',
+        description: 'Your investment has been successfully updated.'
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Invalid input',
+          description: error.issues[0].message,
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update investment',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const removeInvestment = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchInvestments();
+      toast({
+        title: 'Investment removed',
+        description: 'Your investment has been successfully removed.'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove investment',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const openEditDialog = (investment: Investment) => {
+    setEditingInvestment(investment);
+    setIsEditDialogOpen(true);
   };
 
   const getRiskColor = (risk: string) => {
@@ -229,10 +388,112 @@ const Investments = () => {
                     placeholder="e.g., 2845.50"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="purchasePrice">Purchase Price (₹)</Label>
+                  <Input
+                    id="purchasePrice"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={newInvestment.purchasePrice || ''}
+                    onChange={(e) => setNewInvestment({...newInvestment, purchasePrice: parseFloat(e.target.value) || 0})}
+                    placeholder="e.g., 2600.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="purchaseDate">Purchase Date</Label>
+                  <Input
+                    id="purchaseDate"
+                    type="date"
+                    value={newInvestment.purchaseDate}
+                    onChange={(e) => setNewInvestment({...newInvestment, purchaseDate: e.target.value})}
+                  />
+                </div>
                 <Button onClick={addInvestment} className="w-full">
                   Add Investment
                 </Button>
               </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Investment</DialogTitle>
+                <DialogDescription>
+                  Update the details of your investment.
+                </DialogDescription>
+              </DialogHeader>
+              {editingInvestment && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-name">Investment Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editingInvestment.name}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, name: e.target.value})}
+                      placeholder="e.g., Reliance Industries"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-symbol">Symbol</Label>
+                    <Input
+                      id="edit-symbol"
+                      value={editingInvestment.symbol}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, symbol: e.target.value.toUpperCase()})}
+                      placeholder="e.g., RELIANCE"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-shares">Number of Shares</Label>
+                    <Input
+                      id="edit-shares"
+                      type="number"
+                      min="0.001"
+                      step="0.001"
+                      value={editingInvestment.shares || ''}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, shares: parseFloat(e.target.value) || 0})}
+                      placeholder="e.g., 10"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-price">Current Price (₹)</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={editingInvestment.current_price || ''}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, current_price: parseFloat(e.target.value) || 0})}
+                      placeholder="e.g., 2845.50"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-purchasePrice">Purchase Price (₹)</Label>
+                    <Input
+                      id="edit-purchasePrice"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={editingInvestment.purchase_price || ''}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, purchase_price: parseFloat(e.target.value) || 0})}
+                      placeholder="e.g., 2600.00"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-purchaseDate">Purchase Date</Label>
+                    <Input
+                      id="edit-purchaseDate"
+                      type="date"
+                      value={editingInvestment.purchase_date || ''}
+                      onChange={(e) => setEditingInvestment({...editingInvestment, purchase_date: e.target.value})}
+                    />
+                  </div>
+                  <Button onClick={updateInvestment} className="w-full">
+                    Update Investment
+                  </Button>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -299,8 +560,13 @@ const Investments = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {userInvestments.map((investment) => (
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading investments...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {userInvestments.map((investment) => (
                     <div key={investment.id} className="border rounded-lg p-4 dark:border-gray-700">
                       <div className="flex justify-between items-start mb-3">
                         <div>
@@ -321,7 +587,7 @@ const Investments = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEditDialog(investment)}>
                                 <Edit2 className="h-4 w-4 mr-2" />
                                 Edit
                               </DropdownMenuItem>
@@ -344,7 +610,7 @@ const Investments = () => {
                         </div>
                         <div>
                           <p className="text-muted-foreground">Price per Share</p>
-                          <p className="font-semibold text-foreground">₹{investment.currentPrice}</p>
+                          <p className="font-semibold text-foreground">₹{investment.current_price}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Total Value</p>
@@ -352,14 +618,15 @@ const Investments = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
-                  
-                  {userInvestments.length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No investments yet. Add your first investment to get started!</p>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                    
+                    {userInvestments.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No investments yet. Add your first investment to get started!</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
