@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, TrendingUp, Loader2 } from 'lucide-react';
+import { ArrowRight, TrendingUp, Loader2, Check } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +34,8 @@ const InvestmentJourney = () => {
   const [suggestions, setSuggestions] = useState<InvestmentSuggestion[]>([]);
   const [isExisting, setIsExisting] = useState(false);
   const [riskProfile, setRiskProfile] = useState('Moderate');
+  const [selectedInvestments, setSelectedInvestments] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     checkExistingInvestments();
@@ -204,12 +207,76 @@ const InvestmentJourney = () => {
     setIsLoading(false);
   };
 
-  const handleProceed = () => {
-    toast({
-      title: "Investment Plan Created!",
-      description: "Redirecting to dashboard to complete your investment setup",
+  const toggleInvestmentSelection = (investmentKey: string) => {
+    setSelectedInvestments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(investmentKey)) {
+        newSet.delete(investmentKey);
+      } else {
+        newSet.add(investmentKey);
+      }
+      return newSet;
     });
-    setTimeout(() => navigate('/dashboard'), 1500);
+  };
+
+  const handleProceed = async () => {
+    if (selectedInvestments.size === 0) {
+      toast({
+        title: "No Investments Selected",
+        description: "Please select at least one investment option to proceed",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const investmentsToCreate = [];
+      
+      suggestions.forEach((suggestion) => {
+        suggestion.options.forEach((option) => {
+          const key = `${suggestion.category}-${option.name}`;
+          if (selectedInvestments.has(key)) {
+            const allocation = ((investmentAmount * suggestion.allocation) / 100) / suggestion.options.length;
+            investmentsToCreate.push({
+              user_id: user.id,
+              name: option.name,
+              symbol: option.name.substring(0, 10).toUpperCase().replace(/\s/g, ''),
+              shares: 1,
+              current_price: allocation,
+              purchase_price: allocation,
+              purchase_date: new Date().toISOString().split('T')[0]
+            });
+          }
+        });
+      });
+
+      const { error } = await supabase
+        .from('investments')
+        .insert(investmentsToCreate);
+
+      if (error) throw error;
+
+      toast({
+        title: "Investment Plan Created!",
+        description: `Successfully added ${investmentsToCreate.length} investments to your portfolio`,
+      });
+
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (error) {
+      console.error('Error saving investments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your investments. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const investmentAmount = parseFloat(amount) || 0;
@@ -307,26 +374,44 @@ const InvestmentJourney = () => {
                         <Progress value={suggestion.allocation} className="h-2" />
                         
                         <div className="grid md:grid-cols-2 gap-3 mt-3">
-                          {suggestion.options.map((option, optIndex) => (
-                            <Card key={optIndex} className="bg-muted/50">
-                              <CardContent className="p-4">
-                                <h4 className="font-medium text-sm mb-2">{option.name}</h4>
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>{option.type}</span>
-                                  <span className="text-green-600">{option.expectedReturn}</span>
-                                </div>
-                                <div className="mt-1 text-xs">
-                                  <span className={`font-medium ${
-                                    option.risk === 'Low' || option.risk === 'Very Low' ? 'text-green-600' :
-                                    option.risk === 'Medium' ? 'text-yellow-600' :
-                                    'text-red-600'
-                                  }`}>
-                                    Risk: {option.risk}
-                                  </span>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                          {suggestion.options.map((option, optIndex) => {
+                            const investmentKey = `${suggestion.category}-${option.name}`;
+                            const isSelected = selectedInvestments.has(investmentKey);
+                            
+                            return (
+                              <Card 
+                                key={optIndex} 
+                                className={`bg-muted/50 cursor-pointer transition-all ${
+                                  isSelected ? 'ring-2 ring-primary' : ''
+                                }`}
+                                onClick={() => toggleInvestmentSelection(investmentKey)}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 className="font-medium text-sm">{option.name}</h4>
+                                    <Checkbox 
+                                      checked={isSelected}
+                                      onCheckedChange={() => toggleInvestmentSelection(investmentKey)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  </div>
+                                  <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>{option.type}</span>
+                                    <span className="text-green-600">{option.expectedReturn}</span>
+                                  </div>
+                                  <div className="mt-1 text-xs">
+                                    <span className={`font-medium ${
+                                      option.risk === 'Low' || option.risk === 'Very Low' ? 'text-green-600' :
+                                      option.risk === 'Medium' ? 'text-yellow-600' :
+                                      'text-red-600'
+                                    }`}>
+                                      Risk: {option.risk}
+                                    </span>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -334,12 +419,37 @@ const InvestmentJourney = () => {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-center">
-                <Button onClick={handleProceed} size="lg">
-                  Proceed to Dashboard
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+              <Card className="bg-primary/5">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">
+                        {selectedInvestments.size} Investment{selectedInvestments.size !== 1 ? 's' : ''} Selected
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Click on investment cards to select or deselect them
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={handleProceed} 
+                      size="lg"
+                      disabled={selectedInvestments.size === 0 || isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          Save & Proceed
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </>
           )}
         </div>
