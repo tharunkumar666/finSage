@@ -30,23 +30,23 @@ const Investments = () => {
   const [userInvestments, setUserInvestments] = useState([
     {
       id: 1,
-      name: 'Apple Inc.',
-      symbol: 'AAPL',
+      name: 'Reliance Industries',
+      symbol: 'RELIANCE',
       shares: 10,
-      currentPrice: 175.20,
-      totalValue: 1752,
-      gainLoss: 125.50,
-      gainLossPercent: 7.7
+      currentPrice: 2845.50,
+      totalValue: 28455,
+      gainLoss: 2150.50,
+      gainLossPercent: 8.2
     },
     {
       id: 2,
-      name: 'Tesla Inc.',
-      symbol: 'TSLA',
+      name: 'Tata Consultancy Services',
+      symbol: 'TCS',
       shares: 5,
-      currentPrice: 240.80,
-      totalValue: 1204,
-      gainLoss: -45.20,
-      gainLossPercent: -3.6
+      currentPrice: 3680.75,
+      totalValue: 18403.75,
+      gainLoss: -850.25,
+      gainLossPercent: -4.4
     }
   ]);
 
@@ -72,31 +72,31 @@ const Investments = () => {
 
   const recommendedInvestments = [
     {
-      name: 'S&P 500 ETF (SPY)',
-      type: 'ETF',
+      name: 'Nifty 50 Index Fund',
+      type: 'Index Fund',
       risk: 'Moderate',
       expectedReturn: '10-12%',
-      description: 'Diversified exposure to top 500 US companies',
+      description: 'Diversified exposure to top 50 Indian companies',
       allocation: 30,
       reason: 'Matches your moderate risk profile with strong historical returns'
     },
     {
-      name: 'Total Bond Market ETF (BND)',
-      type: 'Bond ETF',
+      name: 'HDFC Corporate Bond Fund',
+      type: 'Debt Mutual Fund',
       risk: 'Low',
-      expectedReturn: '3-5%',
-      description: 'Broad exposure to US investment-grade bonds',
+      expectedReturn: '7-9%',
+      description: 'Investment in high-quality corporate bonds',
       allocation: 25,
-      reason: 'Provides stability and income to balance your portfolio'
+      reason: 'Provides stability and consistent income to balance your portfolio'
     },
     {
-      name: 'International ETF (VTI)',
-      type: 'ETF',
+      name: 'ICICI Prudential Bluechip Fund',
+      type: 'Mutual Fund',
       risk: 'Moderate',
-      expectedReturn: '8-10%',
-      description: 'Exposure to international developed markets',
+      expectedReturn: '12-15%',
+      description: 'Large cap equity mutual fund with proven track record',
       allocation: 15,
-      reason: 'Diversification across global markets reduces risk'
+      reason: 'Strong performance in large cap segment with lower volatility'
     },
     {
       name: 'Bitcoin (BTC)',
@@ -110,10 +110,10 @@ const Investments = () => {
   ];
 
   const recentTransactions = [
-    { date: '2024-01-15', type: 'Buy', asset: 'SPY', amount: 500, shares: 1.2, price: 415.50 },
-    { date: '2024-01-10', type: 'Buy', asset: 'BTC', amount: 250, shares: 0.006, price: 42500 },
-    { date: '2024-01-05', type: 'Sell', asset: 'AAPL', amount: -300, shares: -1.8, price: 185.20 },
-    { date: '2024-01-01', type: 'Dividend', asset: 'VTI', amount: 45, shares: 0, price: 0 }
+    { date: '2024-01-15', type: 'Buy', asset: 'RELIANCE', amount: 28455, shares: 10, price: 2845.50 },
+    { date: '2024-01-10', type: 'Buy', asset: 'BTC', amount: 50000, shares: 0.012, price: 4166666 },
+    { date: '2024-01-05', type: 'Sell', asset: 'INFY', amount: -22140, shares: -15, price: 1476 },
+    { date: '2024-01-01', type: 'Dividend', asset: 'TCS', amount: 750, shares: 0, price: 0 }
   ];
 
   const addInvestment = () => {
@@ -193,7 +193,7 @@ const Investments = () => {
                     id="name"
                     value={newInvestment.name}
                     onChange={(e) => setNewInvestment({...newInvestment, name: e.target.value})}
-                    placeholder="e.g., Apple Inc."
+                    placeholder="e.g., Reliance Industries"
                   />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ const Investments = () => {
                     id="symbol"
                     value={newInvestment.symbol}
                     onChange={(e) => setNewInvestment({...newInvestment, symbol: e.target.value.toUpperCase()})}
-                    placeholder="e.g., AAPL"
+                    placeholder="e.g., RELIANCE"
                   />
                 </div>
                 <div>
@@ -226,7 +226,7 @@ const Investments = () => {
                     step="0.01"
                     value={newInvestment.currentPrice || ''}
                     onChange={(e) => setNewInvestment({...newInvestment, currentPrice: parseFloat(e.target.value) || 0})}
-                    placeholder="e.g., 175.20"
+                    placeholder="e.g., 2845.50"
                   />
                 </div>
                 <Button onClick={addInvestment} className="w-full">
