@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical } from 'lucide-react';
+import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical, Sparkles, RefreshCw } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,21 @@ interface Investment {
   gainLossPercent: number;
 }
 
+interface StockInsights {
+  isValid: boolean;
+  symbol: string;
+  name: string;
+  exchange: string;
+  currentPrice: number;
+  previousClose: number;
+  priceChange: number;
+  priceChangePercent: number;
+  currency: string;
+  insights?: string;
+  canInvest?: boolean;
+  affordableShares?: number;
+}
+
 const Investments = () => {
   const { toast } = useToast();
   const [selectedRiskProfile] = useState('Moderate');
@@ -47,6 +63,9 @@ const Investments = () => {
   const [userInvestments, setUserInvestments] = useState<Investment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+  const [stockInsights, setStockInsights] = useState<StockInsights | null>(null);
+  const [isValidatingStock, setIsValidatingStock] = useState(false);
+  const [isFetchingInsights, setIsFetchingInsights] = useState(false);
 
   const [newInvestment, setNewInvestment] = useState({
     name: '',
@@ -177,6 +196,113 @@ const Investments = () => {
     { date: '2024-01-01', type: 'Dividend', asset: 'TCS', amount: 750, shares: 0, price: 0 }
   ];
 
+  const validateAndFetchStockData = async (symbol: string) => {
+    if (!symbol || symbol.length < 2) {
+      setStockInsights(null);
+      return;
+    }
+
+    setIsValidatingStock(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to validate stocks',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stock-insights`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ symbol: symbol.toUpperCase(), action: 'price' }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast({
+          title: 'Invalid Stock',
+          description: errorData.error || 'Stock symbol not found',
+          variant: 'destructive'
+        });
+        setStockInsights(null);
+        return;
+      }
+
+      const data = await response.json();
+      setStockInsights(data);
+      
+      // Auto-fill the form with validated data
+      setNewInvestment(prev => ({
+        ...prev,
+        name: data.name,
+        currentPrice: data.currentPrice,
+        purchasePrice: data.currentPrice
+      }));
+
+      toast({
+        title: 'Stock Validated',
+        description: `${data.name} - Current Price: ₹${data.currentPrice.toLocaleString()}`,
+      });
+    } catch (error) {
+      console.error('Error validating stock:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to validate stock',
+        variant: 'destructive'
+      });
+      setStockInsights(null);
+    } finally {
+      setIsValidatingStock(false);
+    }
+  };
+
+  const fetchStockInsights = async (symbol: string) => {
+    setIsFetchingInsights(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stock-insights`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            symbol: symbol.toUpperCase(), 
+            action: 'all',
+            userBudget: newInvestment.shares * newInvestment.currentPrice
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch insights');
+
+      const data = await response.json();
+      setStockInsights(data);
+    } catch (error) {
+      console.error('Error fetching insights:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch AI insights',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsFetchingInsights(false);
+    }
+  };
+
   const addInvestment = async () => {
     try {
       const validatedData = investmentSchema.parse(newInvestment);
@@ -207,6 +333,7 @@ const Investments = () => {
 
       await fetchInvestments();
       setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0, purchasePrice: 0, purchaseDate: new Date().toISOString().split('T')[0] });
+      setStockInsights(null);
       setIsAddDialogOpen(false);
       toast({
         title: 'Investment added',
@@ -357,13 +484,79 @@ const Investments = () => {
                 </div>
                 <div>
                   <Label htmlFor="symbol">Symbol</Label>
-                  <Input
-                    id="symbol"
-                    value={newInvestment.symbol}
-                    onChange={(e) => setNewInvestment({...newInvestment, symbol: e.target.value.toUpperCase()})}
-                    placeholder="e.g., RELIANCE"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="symbol"
+                      value={newInvestment.symbol}
+                      onChange={(e) => setNewInvestment({...newInvestment, symbol: e.target.value.toUpperCase()})}
+                      onBlur={(e) => validateAndFetchStockData(e.target.value)}
+                      placeholder="e.g., RELIANCE.NS, TCS.NS"
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => validateAndFetchStockData(newInvestment.symbol)}
+                      disabled={isValidatingStock || !newInvestment.symbol}
+                    >
+                      {isValidatingStock ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Add .NS for NSE stocks (e.g., RELIANCE.NS, TCS.NS, INFY.NS)
+                  </p>
                 </div>
+                
+                {stockInsights && (
+                  <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                    <Sparkles className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-sm">
+                      <div className="font-semibold text-green-900 dark:text-green-100">{stockInsights.name}</div>
+                      <div className="text-green-700 dark:text-green-300 mt-1">
+                        Current: ₹{stockInsights.currentPrice.toLocaleString()} 
+                        <span className={stockInsights.priceChange >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {' '}({stockInsights.priceChange >= 0 ? '+' : ''}{stockInsights.priceChangePercent.toFixed(2)}%)
+                        </span>
+                      </div>
+                      {stockInsights.insights && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-2 text-green-700 dark:text-green-300"
+                          onClick={() => fetchStockInsights(newInvestment.symbol)}
+                          disabled={isFetchingInsights}
+                        >
+                          {isFetchingInsights ? 'Loading...' : 'View AI Insights'}
+                        </Button>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {stockInsights?.insights && (
+                  <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <Sparkles className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 whitespace-pre-wrap">
+                      <div className="font-semibold mb-2">AI Investment Insights:</div>
+                      {stockInsights.insights}
+                      {stockInsights.canInvest !== undefined && (
+                        <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                          {stockInsights.canInvest ? (
+                            <div className="text-green-700 dark:text-green-300">
+                              ✓ You can afford {stockInsights.affordableShares} shares
+                            </div>
+                          ) : (
+                            <div className="text-red-700 dark:text-red-300">
+                              ✗ Insufficient funds for this investment
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div>
                   <Label htmlFor="shares">Number of Shares</Label>
                   <Input
