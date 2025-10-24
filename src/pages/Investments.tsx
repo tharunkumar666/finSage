@@ -784,7 +784,7 @@ const Investments = () => {
                         <p className={`font-medium ${
                           transaction.amount > 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-400'
                         }`}>
-                          {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount)}
+                          {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {transaction.shares !== 0 && `${transaction.shares} shares`}
