@@ -215,7 +215,7 @@ const Investments = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stock-insights`,
+        `https://shicrzxqugqlpxyisvpw.supabase.co/functions/v1/stock-insights`,
         {
           method: 'POST',
           headers: {
@@ -272,7 +272,7 @@ const Investments = () => {
       if (!session) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stock-insights`,
+        `https://shicrzxqugqlpxyisvpw.supabase.co/functions/v1/stock-insights`,
         {
           method: 'POST',
           headers: {
