@@ -170,18 +170,13 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {investments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <TrendingUp className="h-5 w-5 text-primary" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">No investments yet</p>
-                    <Link to="/investments">
-                      <Button size="sm" className="gradient-bg text-primary-foreground rounded-xl text-xs">
-                        <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
-                        Add Investment
-                      </Button>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="No investments yet"
+                    description="Start building your portfolio by adding your first investment."
+                    actionLabel="Add Investment"
+                    actionHref="/investments"
+                  />
                 ) : (
                   <div className="space-y-3">
                     {investments.slice(0, 5).map((inv) => {
