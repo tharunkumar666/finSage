@@ -420,6 +420,7 @@ const Goals = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

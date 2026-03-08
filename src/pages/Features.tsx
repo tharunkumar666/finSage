@@ -233,6 +233,7 @@ const Features = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

@@ -840,6 +840,7 @@ const Investments = () => {
         </Tabs>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

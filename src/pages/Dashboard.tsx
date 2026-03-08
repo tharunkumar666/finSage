@@ -362,6 +362,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

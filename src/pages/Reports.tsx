@@ -349,6 +349,7 @@ const Reports = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

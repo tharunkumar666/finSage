@@ -438,6 +438,7 @@ const DebtAdvisor = () => {
         </Dialog>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

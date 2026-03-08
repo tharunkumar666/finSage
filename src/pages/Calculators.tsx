@@ -491,6 +491,7 @@ const Calculators = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

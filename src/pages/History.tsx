@@ -408,6 +408,7 @@ const History = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

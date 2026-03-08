@@ -890,6 +890,7 @@ const Settings = () => {
         </Tabs>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

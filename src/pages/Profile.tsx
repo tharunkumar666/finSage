@@ -335,6 +335,7 @@ const Profile = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );
