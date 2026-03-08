@@ -3,6 +3,7 @@ import { Users, Target, Shield, TrendingUp, Award, Heart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 const About = () => {
   const teamMembers = [
