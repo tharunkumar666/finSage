@@ -1,96 +1,101 @@
 
 import { Link } from 'react-router-dom';
-import { TrendingUp, Twitter, Linkedin, Github } from 'lucide-react';
+import { TrendingUp, Twitter, Linkedin, Github, ArrowUpRight } from 'lucide-react';
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = {
+    product: [
+      { name: 'Risk Assessment', href: '/quiz' },
+      { name: 'Investments', href: '/investments' },
+      { name: 'Calculators', href: '/calculators' },
+      { name: 'Debt Advisor', href: '/debt' },
+      { name: 'Goals', href: '/goals' },
+    ],
+    company: [
+      { name: 'About', href: '/about' },
+      { name: 'Features', href: '/features' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Premium', href: '/premium' },
+    ],
+    legal: [
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Help Center', href: '/help' },
+    ],
+  };
+
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* Logo and Description */}
-          <div className="md:col-span-2">
-            <Link to="/" className="flex items-center space-x-2 mb-4">
-              <div className="bg-gradient-to-r from-green-600 to-blue-600 p-2 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-white" />
+    <footer className="relative overflow-hidden border-t border-border">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/[0.02] pointer-events-none" />
+      
+      <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+          {/* Brand */}
+          <div className="lg:col-span-2">
+            <Link to="/" className="flex items-center space-x-2.5 mb-4 group">
+              <div className="gradient-bg p-2 rounded-xl transition-transform duration-300 group-hover:scale-105">
+                <TrendingUp className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-2xl font-bold">
-                Fin<span className="text-green-400">Sage</span>
+              <span className="text-xl font-display font-bold text-foreground">
+                Fin<span className="gradient-text">Sage</span>
               </span>
             </Link>
-            <p className="text-gray-400 mb-6 max-w-md">
-              Empowering students with AI-powered financial advice, investment strategies, 
-              and debt management tools to build a secure financial future.
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-sm">
+              Empowering Indian students with AI-powered financial advice, 
+              investment strategies, and smart debt management tools.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="h-5 w-5" />
-              </a>
+            <div className="flex space-x-3">
+              {[
+                { icon: Twitter, href: '#' },
+                { icon: Linkedin, href: '#' },
+                { icon: Github, href: '#' },
+              ].map(({ icon: Icon, href }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/quiz" className="text-gray-400 hover:text-white transition-colors">
-                  Risk Assessment
-                </Link>
-              </li>
-              <li>
-                <Link to="/investments" className="text-gray-400 hover:text-white transition-colors">
-                  Investments
-                </Link>
-              </li>
-              <li>
-                <Link to="/calculators" className="text-gray-400 hover:text-white transition-colors">
-                  Calculators
-                </Link>
-              </li>
-              <li>
-                <Link to="/debt" className="text-gray-400 hover:text-white transition-colors">
-                  Debt Advisor
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/help" className="text-gray-400 hover:text-white transition-colors">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Links */}
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h3 className="text-sm font-display font-semibold text-foreground uppercase tracking-wider mb-4">
+                {title}
+              </h3>
+              <ul className="space-y-2.5">
+                {links.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center group"
+                    >
+                      {link.name}
+                      <ArrowUpRight className="h-3 w-3 ml-1 opacity-0 -translate-y-0.5 translate-x-0.5 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-200" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 FinSage. All rights reserved. Built for students, by students.</p>
+        {/* Bottom bar */}
+        <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground">
+            © {currentYear} FinSage. Built for Indian students, with ❤️
+          </p>
+          <div className="flex items-center space-x-1">
+            <span className="text-xs text-muted-foreground">Powered by</span>
+            <span className="text-xs font-semibold gradient-text">AI + Supabase</span>
+          </div>
         </div>
       </div>
     </footer>
