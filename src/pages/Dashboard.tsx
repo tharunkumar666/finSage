@@ -1,39 +1,106 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle } from 'lucide-react';
+import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface InvestmentRow {
+  id: string;
+  name: string;
+  symbol: string;
+  shares: number;
+  current_price: number;
+  purchase_price: number | null;
+  purchase_date: string | null;
+  created_at: string | null;
+}
+
+interface DebtRow {
+  id: string;
+  name: string;
+  balance: number;
+  interest_rate: number;
+  minimum_payment: number | null;
+  type: string;
+}
+
+interface GoalRow {
+  id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number | null;
+  category: string | null;
+}
+
+interface ActivityRow {
+  id: string;
+  action: string;
+  description: string;
+  category: string;
+  created_at: string | null;
+}
 
 const Dashboard = () => {
-  // Mock data synchronized with Goals page
-  const mockData = {
-    totalInvestments: 15420,
-    monthlyReturns: 8.5,
-    riskProfile: 'Moderate',
-    portfolioAllocation: {
-      stocks: 45,
-      bonds: 25,
-      crypto: 15,
-      cash: 15
-    },
-    recentTransactions: [
-      { type: 'Investment', amount: 500, asset: 'S&P 500 ETF', date: '2024-01-15' },
-      { type: 'Investment', amount: 250, asset: 'Bitcoin', date: '2024-01-10' },
-      { type: 'Withdrawal', amount: -100, asset: 'Cash', date: '2024-01-05' }
-    ],
-    debts: [
-      { name: 'Student Loan', amount: 25000, rate: 6.8, payment: 280 },
-      { name: 'Credit Card', amount: 1200, rate: 18.9, payment: 50 }
-    ],
-    goals: [
-      { name: 'Emergency Fund', target: 10000, current: 3500, progress: 35 },
-      { name: 'House Down Payment', target: 50000, current: 12000, progress: 24 },
-      { name: 'Retirement Fund', target: 100000, current: 15420, progress: 15 }
-    ]
+  const { user } = useAuth();
+  const [investments, setInvestments] = useState<InvestmentRow[]>([]);
+  const [debts, setDebts] = useState<DebtRow[]>([]);
+  const [goals, setGoals] = useState<GoalRow[]>([]);
+  const [activities, setActivities] = useState<ActivityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [investmentsRes, debtsRes, goalsRes, activitiesRes] = await Promise.all([
+        supabase.from('investments').select('*').order('created_at', { ascending: false }),
+        supabase.from('debts').select('*').order('created_at', { ascending: false }),
+        supabase.from('financial_goals').select('*').order('created_at', { ascending: false }),
+        supabase.from('activity_history').select('*').order('created_at', { ascending: false }).limit(5),
+      ]);
+
+      if (investmentsRes.data) setInvestments(investmentsRes.data);
+      if (debtsRes.data) setDebts(debtsRes.data);
+      if (goalsRes.data) setGoals(goalsRes.data);
+      if (activitiesRes.data) setActivities(activitiesRes.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Computed values from real data
+  const totalInvestmentValue = investments.reduce((sum, inv) => sum + (inv.shares * inv.current_price), 0);
+  const totalPurchaseValue = investments.reduce((sum, inv) => sum + (inv.shares * (inv.purchase_price || inv.current_price)), 0);
+  const overallGainLoss = totalPurchaseValue > 0 ? ((totalInvestmentValue - totalPurchaseValue) / totalPurchaseValue) * 100 : 0;
+  const totalDebt = debts.reduce((sum, d) => sum + d.balance, 0);
+  const avgDebtRate = debts.length > 0 ? debts.reduce((sum, d) => sum + d.interest_rate, 0) / debts.length : 0;
+
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Investor';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Loading dashboard...</span>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +110,7 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, Student! 👋
+            Welcome back, {userName}! 👋
           </h1>
           <p className="text-muted-foreground">
             Here's an overview of your financial journey
@@ -58,35 +125,35 @@ const Dashboard = () => {
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{mockData.totalInvestments.toLocaleString()}</div>
-              <p className="text-xs text-primary">
-                +{mockData.monthlyReturns}% from last month
+              <div className="text-2xl font-bold">₹{totalInvestmentValue.toLocaleString('en-IN')}</div>
+              <p className={`text-xs ${overallGainLoss >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                {overallGainLoss >= 0 ? '+' : ''}{overallGainLoss.toFixed(1)}% overall returns
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Risk Profile</CardTitle>
+              <CardTitle className="text-sm font-medium">Holdings</CardTitle>
               <Target className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockData.riskProfile}</div>
-              <p className="text-xs text-primary">
-                Balanced growth approach
+              <div className="text-2xl font-bold">{investments.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Active investments
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Returns</CardTitle>
+              <CardTitle className="text-sm font-medium">Goals Progress</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+{mockData.monthlyReturns}%</div>
-              <p className="text-xs text-primary">
-                Above market average
+              <div className="text-2xl font-bold">{goals.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Financial goals set
               </p>
             </CardContent>
           </Card>
@@ -98,54 +165,64 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ₹{mockData.debts.reduce((total, debt) => total + debt.amount, 0).toLocaleString()}
+                ₹{totalDebt.toLocaleString('en-IN')}
               </div>
               <p className="text-xs text-destructive">
-                Avg rate: {((mockData.debts.reduce((total, debt) => total + debt.rate, 0) / mockData.debts.length)).toFixed(1)}%
+                {debts.length > 0 ? `Avg rate: ${avgDebtRate.toFixed(1)}%` : 'No debts recorded'}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Portfolio Allocation and Goals */}
+        {/* Portfolio and Goals */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Portfolio Allocation</CardTitle>
-              <CardDescription>Your current investment distribution</CardDescription>
+              <CardTitle>Investment Portfolio</CardTitle>
+              <CardDescription>Your current holdings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Stocks</span>
-                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.stocks}%</span>
+              {investments.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground mb-3">No investments yet</p>
+                  <Link to="/investments">
+                    <Button size="sm">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Add Your First Investment
+                    </Button>
+                  </Link>
                 </div>
-                <Progress value={mockData.portfolioAllocation.stocks} className="h-2" />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Bonds</span>
-                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.bonds}%</span>
-                </div>
-                <Progress value={mockData.portfolioAllocation.bonds} className="h-2" />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Crypto</span>
-                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.crypto}%</span>
-                </div>
-                <Progress value={mockData.portfolioAllocation.crypto} className="h-2" />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Cash</span>
-                  <span className="text-sm text-muted-foreground">{mockData.portfolioAllocation.cash}%</span>
-                </div>
-                <Progress value={mockData.portfolioAllocation.cash} className="h-2" />
-              </div>
+              ) : (
+                investments.slice(0, 5).map((inv) => {
+                  const value = inv.shares * inv.current_price;
+                  const percentage = totalInvestmentValue > 0 ? (value / totalInvestmentValue) * 100 : 0;
+                  const gainLoss = inv.purchase_price 
+                    ? ((inv.current_price - inv.purchase_price) / inv.purchase_price) * 100 
+                    : 0;
+                  return (
+                    <div key={inv.id} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="text-sm font-medium">{inv.name}</span>
+                          <span className="text-xs text-muted-foreground ml-2">({inv.symbol})</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-medium">₹{value.toLocaleString('en-IN')}</span>
+                          <span className={`text-xs ml-2 ${gainLoss >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                            {gainLoss >= 0 ? '+' : ''}{gainLoss.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                      <Progress value={percentage} className="h-2" />
+                    </div>
+                  );
+                })
+              )}
+              {investments.length > 5 && (
+                <Link to="/investments" className="block text-center">
+                  <Button variant="link" size="sm">View all {investments.length} investments</Button>
+                </Link>
+              )}
             </CardContent>
           </Card>
 
@@ -154,30 +231,44 @@ const Dashboard = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle>Financial Goals</CardTitle>
-                  <CardDescription>Track your progress towards your goals</CardDescription>
+                  <CardDescription>Track your progress</CardDescription>
                 </div>
                 <Link to="/goals">
-                  <Button variant="outline" size="sm">
-                    Manage Goals
-                  </Button>
+                  <Button variant="outline" size="sm">Manage Goals</Button>
                 </Link>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {mockData.goals.map((goal, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium text-sm">{goal.name}</h4>
-                      <span className="text-sm text-muted-foreground">
-                        ₹{goal.current.toLocaleString()} / ₹{goal.target.toLocaleString()}
-                      </span>
-                    </div>
-                    <Progress value={goal.progress} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-1">{goal.progress}% complete</p>
-                  </div>
-                ))}
-              </div>
+              {goals.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground mb-3">No goals set yet</p>
+                  <Link to="/goals">
+                    <Button size="sm">
+                      <Target className="h-4 w-4 mr-2" />
+                      Set Your First Goal
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {goals.slice(0, 4).map((goal) => {
+                    const current = goal.current_amount || 0;
+                    const progress = goal.target_amount > 0 ? (current / goal.target_amount) * 100 : 0;
+                    return (
+                      <div key={goal.id}>
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-medium text-sm">{goal.name}</h4>
+                          <span className="text-sm text-muted-foreground">
+                            ₹{current.toLocaleString('en-IN')} / ₹{goal.target_amount.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <Progress value={Math.min(progress, 100)} className="h-2" />
+                        <p className="text-xs text-muted-foreground mt-1">{progress.toFixed(0)}% complete</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -226,48 +317,64 @@ const Dashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your latest transactions</CardDescription>
+              <CardDescription>Your latest actions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockData.recentTransactions.map((transaction, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">{transaction.asset}</p>
-                      <p className="text-xs text-muted-foreground">{transaction.date}</p>
+              {activities.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+              ) : (
+                <div className="space-y-4">
+                  {activities.map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{activity.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.created_at ? new Date(activity.created_at).toLocaleDateString('en-IN') : ''}
+                        </p>
+                      </div>
+                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                        {activity.category}
+                      </span>
                     </div>
-                    <div className={`text-sm font-medium ${transaction.amount > 0 ? 'text-primary' : 'text-destructive'}`}>
-                      {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Debt Overview</CardTitle>
-              <CardDescription>Track your debt repayment progress</CardDescription>
+              <CardDescription>Track your debt repayment</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockData.debts.map((debt, index) => (
-                  <div key={index} className="border border-border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium">{debt.name}</h4>
-                      <span className="text-sm text-muted-foreground">{debt.rate}% APR</span>
+              {debts.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground mb-3">No debts recorded 🎉</p>
+                  <Link to="/debt">
+                    <Button variant="outline" size="sm">Add Debt to Track</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {debts.map((debt) => (
+                    <div key={debt.id} className="border border-border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{debt.name}</h4>
+                        <span className="text-sm text-muted-foreground">{debt.interest_rate}% APR</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold">₹{debt.balance.toLocaleString('en-IN')}</span>
+                        {debt.minimum_payment && (
+                          <span className="text-sm text-primary">
+                            ₹{debt.minimum_payment.toLocaleString('en-IN')}/month
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold">₹{debt.amount.toLocaleString()}</span>
-                      <span className="text-sm text-primary">
-                        ₹{debt.payment}/month
-                      </span>
-                    </div>
-                    <Progress value={(debt.payment / debt.amount) * 100} className="h-2 mt-2" />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
