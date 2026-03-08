@@ -226,18 +226,13 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {goals.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
-                      <Target className="h-5 w-5 text-accent" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">No goals set yet</p>
-                    <Link to="/goals">
-                      <Button size="sm" className="gradient-bg text-primary-foreground rounded-xl text-xs">
-                        <Target className="h-3.5 w-3.5 mr-1.5" />
-                        Set a Goal
-                      </Button>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={Target}
+                    title="No goals set yet"
+                    description="Define your financial goals and track your progress."
+                    actionLabel="Set a Goal"
+                    actionHref="/goals"
+                  />
                 ) : (
                   <div className="space-y-5">
                     {goals.slice(0, 4).map((goal) => {
