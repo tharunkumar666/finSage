@@ -335,9 +335,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {debts.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground">No debts recorded 🎉</p>
-                  </div>
+                  <EmptyState icon={PartyPopper} title="Debt free!" description="You have no debts recorded. Keep it up! 🎉" />
                 ) : (
                   <div className="space-y-3">
                     {debts.map((debt) => (

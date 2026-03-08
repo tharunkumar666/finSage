@@ -688,9 +688,13 @@ const Investments = () => {
                     ))}
                     
                     {userInvestments.length === 0 && (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">No investments yet. Add your first investment to get started!</p>
-                      </div>
+                      <EmptyState
+                        icon={TrendingUp}
+                        title="No investments yet"
+                        description="Add your first investment to get started!"
+                        actionLabel="Add Investment"
+                        actionHref="/investments"
+                      />
                     )}
                   </div>
                 )}
