@@ -680,7 +680,7 @@ const Investments = () => {
         </div>
 
         {/* Portfolio Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-1 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -690,35 +690,14 @@ const Investments = () => {
                     ₹{portfolioData.totalValue.toLocaleString()}
                   </p>
                   <p className={`text-sm ${portfolioData.todayChangePercent >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}₹{portfolioData.todayChange}
-                    ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent}%)
+                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}₹{portfolioData.todayChange.toLocaleString()}
+                    ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent.toFixed(2)}%)
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
-
-          {Object.entries(portfolioData.allocation).map(([key, data]) => (
-            <Card key={key}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground capitalize">{key}</p>
-                    <p className="text-xl font-bold text-foreground">
-                      ₹{data.value.toLocaleString()}
-                    </p>
-                    <p className={`text-xs ${data.change >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                      {data.change >= 0 ? '+' : ''}{data.change}%
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">{data.percentage}%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
 
         <Tabs defaultValue="holdings" className="space-y-6">
