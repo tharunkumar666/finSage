@@ -150,7 +150,7 @@ const Reports = () => {
                       <span className="text-sm font-medium w-12">{month}</span>
                       <div className="flex-1 mx-4">
                         <div className="flex items-center">
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="flex-1 bg-muted rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${
                                 portfolioPerformance.monthlyReturns[index] >= 0 ? 'bg-green-500' : 'bg-red-500'
