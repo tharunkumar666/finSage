@@ -66,6 +66,8 @@ const Investments = () => {
   const [stockInsights, setStockInsights] = useState<StockInsights | null>(null);
   const [isValidatingStock, setIsValidatingStock] = useState(false);
   const [isFetchingInsights, setIsFetchingInsights] = useState(false);
+  const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   const [newInvestment, setNewInvestment] = useState({
     name: '',
@@ -139,62 +141,48 @@ const Investments = () => {
       totalValue,
       todayChange: totalGainLoss,
       todayChangePercent,
-      allocation: {
-        stocks: { value: totalValue * 0.45, percentage: 45, change: 2.1 },
-        bonds: { value: totalValue * 0.25, percentage: 25, change: 0.5 },
-        crypto: { value: totalValue * 0.15, percentage: 15, change: -1.2 },
-        cash: { value: totalValue * 0.15, percentage: 15, change: 0.0 }
-      }
     };
   };
 
   const portfolioData = calculatePortfolioData();
 
-  const recommendedInvestments = [
-    {
-      name: 'Nifty 50 Index Fund',
-      type: 'Index Fund',
-      risk: 'Moderate',
-      expectedReturn: '10-12%',
-      description: 'Diversified exposure to top 50 Indian companies',
-      allocation: 30,
-      reason: 'Matches your moderate risk profile with strong historical returns'
-    },
-    {
-      name: 'HDFC Corporate Bond Fund',
-      type: 'Debt Mutual Fund',
-      risk: 'Low',
-      expectedReturn: '7-9%',
-      description: 'Investment in high-quality corporate bonds',
-      allocation: 25,
-      reason: 'Provides stability and consistent income to balance your portfolio'
-    },
-    {
-      name: 'ICICI Prudential Bluechip Fund',
-      type: 'Mutual Fund',
-      risk: 'Moderate',
-      expectedReturn: '12-15%',
-      description: 'Large cap equity mutual fund with proven track record',
-      allocation: 15,
-      reason: 'Strong performance in large cap segment with lower volatility'
-    },
-    {
-      name: 'Bitcoin (BTC)',
-      type: 'Cryptocurrency',
-      risk: 'High',
-      expectedReturn: '15-25%',
-      description: 'Leading cryptocurrency with high volatility',
-      allocation: 10,
-      reason: 'Small allocation for portfolio diversification and growth potential'
-    }
-  ];
+  const fetchRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: 'Authentication required', description: 'Please log in', variant: 'destructive' });
+        return;
+      }
 
-  const recentTransactions = [
-    { date: '2024-01-15', type: 'Buy', asset: 'RELIANCE', amount: 28455, shares: 10, price: 2845.50 },
-    { date: '2024-01-10', type: 'Buy', asset: 'BTC', amount: 50000, shares: 0.012, price: 4166666 },
-    { date: '2024-01-05', type: 'Sell', asset: 'INFY', amount: -22140, shares: -15, price: 1476 },
-    { date: '2024-01-01', type: 'Dividend', asset: 'TCS', amount: 750, shares: 0, price: 0 }
-  ];
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-advisor`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: 'Based on my current portfolio, suggest personalized investment recommendations for the Indian market. Include specific fund names, risk levels, expected returns, and reasoning.',
+            context: {
+              investments: userInvestments.map(inv => ({ name: inv.name, symbol: inv.symbol, value: inv.totalValue })),
+              riskProfile: selectedRiskProfile,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      const data = await response.json();
+      setRecommendations(data.advice);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      toast({ title: 'Error', description: 'Failed to fetch AI recommendations', variant: 'destructive' });
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
 
   const validateAndFetchStockData = async (symbol: string) => {
     if (!symbol || symbol.length < 2) {
@@ -692,7 +680,7 @@ const Investments = () => {
         </div>
 
         {/* Portfolio Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-1 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -702,35 +690,14 @@ const Investments = () => {
                     ₹{portfolioData.totalValue.toLocaleString()}
                   </p>
                   <p className={`text-sm ${portfolioData.todayChangePercent >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}₹{portfolioData.todayChange}
-                    ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent}%)
+                    {portfolioData.todayChangePercent >= 0 ? '+' : ''}₹{portfolioData.todayChange.toLocaleString()}
+                    ({portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent.toFixed(2)}%)
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
-
-          {Object.entries(portfolioData.allocation).map(([key, data]) => (
-            <Card key={key}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground capitalize">{key}</p>
-                    <p className="text-xl font-bold text-foreground">
-                      ₹{data.value.toLocaleString()}
-                    </p>
-                    <p className={`text-xs ${data.change >= 0 ? 'text-green-600' : 'text-red-500 dark:text-red-400'}`}>
-                      {data.change >= 0 ? '+' : ''}{data.change}%
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">{data.percentage}%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
 
         <Tabs defaultValue="holdings" className="space-y-6">
@@ -828,62 +795,41 @@ const Investments = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <Sparkles className="h-5 w-5 text-blue-600" />
                   AI Investment Recommendations
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Based on your {selectedRiskProfile} risk profile and current market conditions
+                  Get personalized recommendations based on your portfolio
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {recommendedInvestments.map((investment, index) => (
-                    <Card key={index} className="border border-blue-200 dark:border-blue-900">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg text-foreground">{investment.name}</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">{investment.type}</p>
-                          </div>
-                          <Badge className={getRiskColor(investment.risk)}>
-                            {investment.risk} Risk
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <p className="text-sm text-muted-foreground">{investment.description}</p>
-                          
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">Expected Return</p>
-                              <p className="font-semibold text-foreground">{investment.expectedReturn}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Suggested Allocation</p>
-                              <p className="font-semibold text-foreground">{investment.allocation}%</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                            <p className="text-sm text-blue-800 dark:text-blue-300">
-                              <strong>Why we recommend this:</strong> {investment.reason}
-                            </p>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button className="flex-1 bg-green-600 hover:bg-green-700">
-                              Invest Now
-                            </Button>
-                            <Button variant="outline" className="flex-1">
-                              Learn More
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {!recommendations && !isLoadingRecommendations && (
+                  <div className="text-center py-12">
+                    <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">Click to get personalized AI recommendations</p>
+                    <Button onClick={fetchRecommendations} className="bg-primary hover:bg-primary/90">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Get AI Recommendations
+                    </Button>
+                  </div>
+                )}
+                {isLoadingRecommendations && (
+                  <div className="text-center py-12">
+                    <RefreshCw className="h-8 w-8 text-muted-foreground mx-auto mb-4 animate-spin" />
+                    <p className="text-muted-foreground">Analyzing your portfolio and generating recommendations...</p>
+                  </div>
+                )}
+                {recommendations && !isLoadingRecommendations && (
+                  <div className="space-y-4">
+                    <div className="prose dark:prose-invert max-w-none text-sm whitespace-pre-wrap text-foreground">
+                      {recommendations}
+                    </div>
+                    <Button variant="outline" onClick={fetchRecommendations} className="mt-4">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Recommendations
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -894,24 +840,31 @@ const Investments = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <PieChart className="h-5 w-5 text-purple-600" />
-                    Asset Allocation
+                    Portfolio Breakdown
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">Current portfolio distribution</CardDescription>
+                  <CardDescription className="text-muted-foreground">Your holdings by value</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(portfolioData.allocation).map(([key, data]) => (
-                      <div key={key} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium capitalize text-muted-foreground">{key}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {data.percentage}% (₹{data.value.toLocaleString()})
-                          </span>
-                        </div>
-                        <Progress value={data.percentage} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
+                  {userInvestments.length > 0 ? (
+                    <div className="space-y-4">
+                      {userInvestments.map((inv) => {
+                        const pct = portfolioData.totalValue > 0 ? (inv.totalValue / portfolioData.totalValue) * 100 : 0;
+                        return (
+                          <div key={inv.id} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-muted-foreground">{inv.symbol}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {pct.toFixed(1)}% (₹{inv.totalValue.toLocaleString()})
+                              </span>
+                            </div>
+                            <Progress value={pct} className="h-2" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">Add investments to see your portfolio breakdown</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -919,31 +872,34 @@ const Investments = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <BarChart3 className="h-5 w-5 text-green-600" />
-                    Performance Metrics
+                    Performance Summary
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">Key portfolio statistics</CardDescription>
+                  <CardDescription className="text-muted-foreground">Based on your actual holdings</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
-                        <p className="text-sm text-green-600 dark:text-green-300">Total Return</p>
-                        <p className="text-xl font-bold text-green-700 dark:text-green-300">+8.5%</p>
+                      <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-green-600 dark:text-green-300">Total Gain/Loss</p>
+                        <p className={`text-xl font-bold ${portfolioData.todayChange >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {portfolioData.todayChange >= 0 ? '+' : ''}₹{portfolioData.todayChange.toLocaleString()}
+                        </p>
                       </div>
-                      <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
-                        <p className="text-sm text-blue-600 dark:text-blue-300">Annual Return</p>
-                        <p className="text-xl font-bold text-blue-700 dark:text-blue-300">+12.3%</p>
+                      <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-blue-600 dark:text-blue-300">Return %</p>
+                        <p className={`text-xl font-bold ${portfolioData.todayChangePercent >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent.toFixed(2)}%
+                        </p>
                       </div>
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
-                        <p className="text-sm text-purple-600 dark:text-purple-300">Risk Score</p>
-                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300">6.5/10</p>
+                      <div className="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-purple-600 dark:text-purple-300">Holdings</p>
+                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300">{userInvestments.length}</p>
                       </div>
-                      <div className="bg-orange-50 dark:bg-orange-900 p-3 rounded-lg">
-                        <p className="text-sm text-orange-600 dark:text-orange-300">Diversification</p>
-                        <p className="text-xl font-bold text-orange-700 dark:text-orange-300">Good</p>
+                      <div className="bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-orange-600 dark:text-orange-300">Portfolio Value</p>
+                        <p className="text-xl font-bold text-orange-700 dark:text-orange-300">₹{portfolioData.totalValue.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
@@ -959,32 +915,10 @@ const Investments = () => {
                 <CardDescription className="text-muted-foreground">Your latest investment activity</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentTransactions.map((transaction, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-2 h-2 rounded-full ${
-                          transaction.type === 'Buy' ? 'bg-green-500' : 
-                          transaction.type === 'Sell' ? 'bg-red-500' : 'bg-blue-500'
-                        }`}></div>
-                        <div>
-                          <p className="font-medium text-foreground">{transaction.asset}</p>
-                          <p className="text-sm text-muted-foreground">{transaction.date}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className={`font-medium ${
-                          transaction.amount > 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {transaction.shares !== 0 && `${transaction.shares} shares`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-center py-12">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">Transaction history coming soon</p>
+                  <p className="text-sm text-muted-foreground mt-1">We're working on tracking your buy/sell activity automatically.</p>
                 </div>
               </CardContent>
             </Card>
