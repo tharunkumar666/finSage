@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BottomNav from "./components/layout/BottomNav";
 
 // Lazy-loaded pages
 const Index = React.lazy(() => import("./pages/Index"));
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
+            <BottomNav />
           </BrowserRouter>
         </ThemeProvider>
       </AuthProvider>
