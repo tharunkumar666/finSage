@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 interface SIPData {
   monthlyAmount: number;
