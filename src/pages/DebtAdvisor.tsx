@@ -130,7 +130,7 @@ const DebtAdvisor = () => {
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
             <AlertCircle className="h-8 w-8 text-red-600" />
             Debt Advisor
           </h1>

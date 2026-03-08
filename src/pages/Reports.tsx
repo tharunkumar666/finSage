@@ -189,7 +189,7 @@ const Reports = () => {
                     <div key={asset} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium capitalize">{asset}</span>
-                        <span className="text-sm text-gray-600">{percentage}%</span>
+                        <span className="text-sm text-muted-foreground">{percentage}%</span>
                       </div>
                       <Progress value={percentage} className="h-2" />
                     </div>

@@ -341,7 +341,7 @@ const Settings = () => {
           </h1>
           <p className="text-muted-foreground">
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-muted-foreground">
             Manage your account preferences and settings
           </p>
         </div>

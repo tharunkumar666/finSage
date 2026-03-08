@@ -353,7 +353,7 @@ const Investments = () => {
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button className="gradient-bg text-primary-foreground">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Investment
               </Button>
