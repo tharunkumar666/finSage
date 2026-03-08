@@ -1,9 +1,10 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface AIAdvisorRequest {
@@ -106,7 +107,7 @@ ${contextString}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: query }
@@ -156,8 +157,6 @@ ${contextString}`;
       errorMessage = 'Unable to generate a response. Please try again.';
     } else if (error.message === 'LOVABLE_API_KEY is not configured') {
       errorMessage = 'Service configuration error. Please contact support.';
-    } else if (error.message === 'Query is required') {
-      errorMessage = 'Please provide a question for the AI advisor.';
     }
     
     return new Response(
