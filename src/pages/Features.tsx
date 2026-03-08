@@ -92,6 +92,7 @@ const Features = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
