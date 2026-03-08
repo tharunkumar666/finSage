@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle, ArrowUpRight, ArrowDownRight, BarChart3, Wallet, RefreshCw } from 'lucide-react';
+import { TrendingUp, Target, AlertCircle, PlusCircle, ArrowUpRight, ArrowDownRight, BarChart3, Wallet, RefreshCw, Activity, PartyPopper } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
