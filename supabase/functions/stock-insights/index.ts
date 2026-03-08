@@ -3,12 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest } from '../_shared/auth.ts';
 import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
-
-interface StockInsightsRequest {
-  symbol: string;
-  action?: 'validate' | 'insights' | 'price' | 'all';
-  userBudget?: number;
-}
+import { stockInsightsSchema } from '../_shared/validators.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 // Popular Indian stock symbols mapping for validation
 const INDIAN_STOCK_SUFFIXES = ['.NS', '.BO'];
@@ -82,11 +78,16 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
-    const { symbol, action = 'all', userBudget } = await req.json() as StockInsightsRequest;
-
-    if (!symbol) {
-      return errorResponse(400, 'Symbol is required', corsHeaders);
+    let parsed;
+    try {
+      parsed = stockInsightsSchema.parse(await req.json());
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return errorResponse(400, e.issues[0].message, corsHeaders);
+      }
+      throw e;
     }
+    const { symbol, action, userBudget } = parsed;
 
     // Fetch stock data with fallback symbol resolution
     const stockResult = await fetchStockData(symbol.toUpperCase());

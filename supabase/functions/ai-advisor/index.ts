@@ -3,16 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest } from '../_shared/auth.ts';
 import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
-
-interface AIAdvisorRequest {
-  query: string;
-  context?: {
-    investments?: any[];
-    debts?: any[];
-    goals?: any[];
-    riskProfile?: string;
-  };
-}
+import { aiAdvisorSchema } from '../_shared/validators.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -29,15 +21,20 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
-    const { query, context } = await req.json() as AIAdvisorRequest;
+    let parsed;
+    try {
+      parsed = aiAdvisorSchema.parse(await req.json());
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return errorResponse(400, e.issues[0].message, corsHeaders);
+      }
+      throw e;
+    }
+    const { query, context } = parsed;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    if (!query) {
-      return errorResponse(400, 'Query is required', corsHeaders);
     }
 
     // Build context string from user data

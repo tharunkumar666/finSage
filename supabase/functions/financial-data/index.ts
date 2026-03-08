@@ -3,12 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest } from '../_shared/auth.ts';
 import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
-
-interface FinancialDataRequest {
-  symbol: string;
-  period?: string;
-  interval?: string;
-}
+import { financialDataSchema } from '../_shared/validators.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -25,11 +21,16 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
-    const { symbol, period = '1mo', interval = '1d' } = await req.json() as FinancialDataRequest;
-
-    if (!symbol) {
-      return errorResponse(400, 'Symbol is required', corsHeaders);
+    let parsed;
+    try {
+      parsed = financialDataSchema.parse(await req.json());
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return errorResponse(400, e.issues[0].message, corsHeaders);
+      }
+      throw e;
     }
+    const { symbol, period, interval } = parsed;
 
     // Try symbol with .NS suffix for Indian stocks
     const symbolsToTry = [symbol];
