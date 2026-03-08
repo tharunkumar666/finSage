@@ -125,7 +125,7 @@ const DebtAdvisor = () => {
   const results = calculatePayoffPlan();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
