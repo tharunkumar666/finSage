@@ -79,6 +79,15 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
+    // Rate limit check
+    const rateCheck = await checkRateLimit(supabaseClient, user.id, 'stock-insights');
+    if (!rateCheck.allowed) {
+      return errorResponse(429, 'Rate limit exceeded. Try again later.', {
+        ...corsHeaders,
+        'Retry-After': String(rateCheck.retryAfter || 60),
+      });
+    }
+
     let parsed;
     try {
       parsed = stockInsightsSchema.parse(await req.json());
