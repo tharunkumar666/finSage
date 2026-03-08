@@ -54,7 +54,7 @@ const Reports = () => {
               <BarChart3 className="h-8 w-8 text-purple-600" />
               Financial Reports
             </h1>
-            <p className="text-gray-600">Comprehensive analysis of your financial performance</p>
+            <p className="text-muted-foreground">Comprehensive analysis of your financial performance</p>
           </div>
           
           <div className="flex gap-4">
