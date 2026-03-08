@@ -129,7 +129,7 @@ const DebtAdvisor = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <main id="main-content" role="main" className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
             <AlertCircle className="h-8 w-8 text-destructive" />

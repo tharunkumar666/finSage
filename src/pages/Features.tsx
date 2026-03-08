@@ -93,7 +93,7 @@ const Features = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-display font-bold text-foreground mb-6">
