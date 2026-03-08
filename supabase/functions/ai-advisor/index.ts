@@ -29,15 +29,20 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
-    const { query, context } = await req.json() as AIAdvisorRequest;
+    let parsed;
+    try {
+      parsed = aiAdvisorSchema.parse(await req.json());
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return errorResponse(400, e.issues[0].message, corsHeaders);
+      }
+      throw e;
+    }
+    const { query, context } = parsed;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    if (!query) {
-      return errorResponse(400, 'Query is required', corsHeaders);
     }
 
     // Build context string from user data

@@ -21,11 +21,16 @@ serve(async (req) => {
 
     const { user, supabaseClient } = await authenticateRequest(req);
 
-    const { symbol, period = '1mo', interval = '1d' } = await req.json() as FinancialDataRequest;
-
-    if (!symbol) {
-      return errorResponse(400, 'Symbol is required', corsHeaders);
+    let parsed;
+    try {
+      parsed = financialDataSchema.parse(await req.json());
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return errorResponse(400, e.issues[0].message, corsHeaders);
+      }
+      throw e;
     }
+    const { symbol, period, interval } = parsed;
 
     // Try symbol with .NS suffix for Indian stocks
     const symbolsToTry = [symbol];
