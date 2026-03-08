@@ -128,6 +128,7 @@ const DebtAdvisor = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
