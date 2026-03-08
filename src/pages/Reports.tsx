@@ -44,17 +44,17 @@ const Reports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center gap-2">
               <BarChart3 className="h-8 w-8 text-purple-600" />
               Financial Reports
             </h1>
-            <p className="text-gray-600">Comprehensive analysis of your financial performance</p>
+            <p className="text-muted-foreground">Comprehensive analysis of your financial performance</p>
           </div>
           
           <div className="flex gap-4">
@@ -150,7 +150,7 @@ const Reports = () => {
                       <span className="text-sm font-medium w-12">{month}</span>
                       <div className="flex-1 mx-4">
                         <div className="flex items-center">
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="flex-1 bg-muted rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${
                                 portfolioPerformance.monthlyReturns[index] >= 0 ? 'bg-green-500' : 'bg-red-500'
@@ -189,7 +189,7 @@ const Reports = () => {
                     <div key={asset} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium capitalize">{asset}</span>
-                        <span className="text-sm text-gray-600">{percentage}%</span>
+                        <span className="text-sm text-muted-foreground">{percentage}%</span>
                       </div>
                       <Progress value={percentage} className="h-2" />
                     </div>

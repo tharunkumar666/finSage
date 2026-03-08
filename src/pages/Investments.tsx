@@ -338,13 +338,13 @@ const Investments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center gap-2">
               <TrendingUp className="h-8 w-8 text-green-600" />
               Investment Portfolio
             </h1>
@@ -353,7 +353,7 @@ const Investments = () => {
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button className="gradient-bg text-primary-foreground">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Investment
               </Button>

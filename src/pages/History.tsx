@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -252,15 +253,15 @@ const History = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="space-y-4">
+            <Skeleton className="h-8 rounded-2xl w-1/4" />
+            <Skeleton className="h-4 rounded-2xl w-1/2" />
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <Skeleton key={i} className="h-20 rounded-2xl" />
               ))}
             </div>
           </div>
@@ -270,13 +271,13 @@ const History = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-            <HistoryIcon className="h-8 w-8 text-blue-600" />
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center gap-2">
+            <HistoryIcon className="h-8 w-8 text-primary" />
             Activity History
           </h1>
           <p className="text-muted-foreground">
@@ -285,10 +286,10 @@ const History = () => {
         </div>
 
         {/* Filters */}
-        <Card className="mb-6 dark:bg-gray-800 dark:border-gray-700">
+        <Card className="mb-6 rounded-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Filter className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 font-display text-foreground">
+              <Filter className="h-5 w-5 text-primary" />
               Filters
             </CardTitle>
           </CardHeader>
@@ -296,21 +297,21 @@ const History = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search activities..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="pl-9"
                   />
                 </div>
               </div>
               <div className="min-w-[200px]">
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                  <SelectTrigger>
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-700 dark:border-gray-600">
+                  <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="authentication">Authentication</SelectItem>
                     <SelectItem value="profile">Profile</SelectItem>
@@ -327,7 +328,6 @@ const History = () => {
                 onClick={loadActivityHistory} 
                 disabled={refreshing}
                 variant="outline"
-                className="dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh
@@ -339,10 +339,10 @@ const History = () => {
         {/* Activity List */}
         <div className="space-y-4">
           {filteredActivities.length === 0 ? (
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <Card className="rounded-2xl">
               <CardContent className="py-12 text-center">
-                <HistoryIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
+                <HistoryIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-display font-medium text-foreground mb-2">
                   No activities found
                 </h3>
                 <p className="text-muted-foreground">
@@ -354,7 +354,7 @@ const History = () => {
             </Card>
           ) : (
             filteredActivities.map((activity) => (
-              <Card key={activity.id} className="hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
+              <Card key={activity.id} className="hover:shadow-md transition-shadow rounded-2xl">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -374,7 +374,7 @@ const History = () => {
                           Action: {activity.action}
                         </p>
                         {activity.metadata && Object.keys(activity.metadata).length > 0 && (
-                          <div className="text-xs text-muted-foreground bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                          <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
                             <details>
                               <summary className="cursor-pointer font-medium">View Details</summary>
                               <pre className="mt-2 whitespace-pre-wrap">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AlertCircle, TrendingDown, Calculator, Target, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -125,13 +124,13 @@ const DebtAdvisor = () => {
   const results = calculatePayoffPlan();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
-            <AlertCircle className="h-8 w-8 text-red-600" />
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+            <AlertCircle className="h-8 w-8 text-destructive" />
             Debt Advisor
           </h1>
           <p className="text-muted-foreground">Create a strategic plan to eliminate your debt faster</p>
@@ -140,9 +139,9 @@ const DebtAdvisor = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Strategy Selection */}
           <div className="lg:col-span-1">
-            <Card className="mb-6">
+            <Card className="rounded-2xl mb-6">
               <CardHeader>
-                <CardTitle className="text-foreground">Payoff Strategy</CardTitle>
+                <CardTitle className="font-display text-foreground">Payoff Strategy</CardTitle>
                 <CardDescription className="text-muted-foreground">Choose your debt elimination approach</CardDescription>
               </CardHeader>
               <CardContent>
@@ -152,8 +151,8 @@ const DebtAdvisor = () => {
                       onClick={() => setStrategy('snowball')}
                       className={`w-full p-4 rounded-lg border-2 transition-colors ${
                         strategy === 'snowball' 
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
                       }`}
                     >
                       <h3 className="font-semibold mb-2 text-foreground">Debt Snowball</h3>
@@ -166,8 +165,8 @@ const DebtAdvisor = () => {
                       onClick={() => setStrategy('avalanche')}
                       className={`w-full p-4 rounded-lg border-2 transition-colors ${
                         strategy === 'avalanche' 
-                          ? 'border-green-500 bg-green-50 dark:bg-green-950' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
                       }`}
                     >
                       <h3 className="font-semibold mb-2 text-foreground">Debt Avalanche</h3>
@@ -178,9 +177,9 @@ const DebtAdvisor = () => {
               </CardContent>
             </Card>
 
-            <Card className="mb-6">
+            <Card className="rounded-2xl mb-6">
               <CardHeader>
-                <CardTitle className="text-foreground">Extra Payment</CardTitle>
+                <CardTitle className="font-display text-foreground">Extra Payment</CardTitle>
                 <CardDescription className="text-muted-foreground">Additional amount you can pay monthly</CardDescription>
               </CardHeader>
               <CardContent>
@@ -191,16 +190,15 @@ const DebtAdvisor = () => {
                     type="number"
                     value={extraPayment}
                     onChange={(e) => setExtraPayment(parseInt(e.target.value) || 0)}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Add New Debt */}
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-foreground">Add New Debt</CardTitle>
+                <CardTitle className="font-display text-foreground">Add New Debt</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -210,7 +208,6 @@ const DebtAdvisor = () => {
                     value={newDebt.name}
                     onChange={(e) => setNewDebt({...newDebt, name: e.target.value})}
                     placeholder="e.g., Credit Card"
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 
@@ -221,7 +218,6 @@ const DebtAdvisor = () => {
                     type="number"
                     value={newDebt.balance || ''}
                     onChange={(e) => setNewDebt({...newDebt, balance: parseInt(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 
@@ -232,7 +228,6 @@ const DebtAdvisor = () => {
                     type="number"
                     value={newDebt.minPayment || ''}
                     onChange={(e) => setNewDebt({...newDebt, minPayment: parseInt(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 
@@ -244,17 +239,16 @@ const DebtAdvisor = () => {
                     step="0.1"
                     value={newDebt.interestRate || ''}
                     onChange={(e) => setNewDebt({...newDebt, interestRate: parseFloat(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 
                 <div>
                   <Label htmlFor="debtType" className="text-foreground">Debt Type</Label>
                   <Select value={newDebt.type} onValueChange={(value) => setNewDebt({...newDebt, type: value})}>
-                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectContent>
                       <SelectItem value="credit_card">Credit Card</SelectItem>
                       <SelectItem value="student_loan">Student Loan</SelectItem>
                       <SelectItem value="personal_loan">Personal Loan</SelectItem>
@@ -264,7 +258,7 @@ const DebtAdvisor = () => {
                   </Select>
                 </div>
                 
-                <Button onClick={addDebt} className="w-full">Add Debt</Button>
+                <Button onClick={addDebt} className="w-full gradient-bg text-primary-foreground">Add Debt</Button>
               </CardContent>
             </Card>
           </div>
@@ -273,47 +267,47 @@ const DebtAdvisor = () => {
           <div className="lg:col-span-2">
             {/* Summary Cards */}
             <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <Card>
+              <Card className="rounded-2xl">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Debt</p>
-                      <p className="text-2xl font-bold text-red-600">₹{results.totalDebt.toLocaleString()}</p>
+                      <p className="text-2xl font-display font-bold text-destructive">₹{results.totalDebt.toLocaleString()}</p>
                     </div>
-                    <AlertCircle className="h-8 w-8 text-red-600" />
+                    <AlertCircle className="h-8 w-8 text-destructive" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-2xl">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Payoff Time</p>
-                      <p className="text-2xl font-bold text-blue-600">{results.totalYearsToPayoff} years</p>
+                      <p className="text-2xl font-display font-bold text-primary">{results.totalYearsToPayoff} years</p>
                     </div>
-                    <Target className="h-8 w-8 text-blue-600" />
+                    <Target className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-2xl">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Interest</p>
-                      <p className="text-2xl font-bold text-orange-600">₹{results.totalInterest.toLocaleString()}</p>
+                      <p className="text-2xl font-display font-bold text-accent-foreground">₹{results.totalInterest.toLocaleString()}</p>
                     </div>
-                    <TrendingDown className="h-8 w-8 text-orange-600" />
+                    <TrendingDown className="h-8 w-8 text-accent-foreground" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Payoff Plan */}
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-foreground">Your Debt Payoff Plan</CardTitle>
+                <CardTitle className="font-display text-foreground">Your Debt Payoff Plan</CardTitle>
                 <CardDescription className="text-muted-foreground">
                   Using the {strategy === 'snowball' ? 'Debt Snowball' : 'Debt Avalanche'} method
                 </CardDescription>
@@ -321,7 +315,7 @@ const DebtAdvisor = () => {
               <CardContent>
                 <div className="space-y-4">
                   {results.payoffPlan.map((debt, index) => (
-                    <div key={debt.id} className="border rounded-lg p-4 dark:border-gray-700">
+                    <div key={debt.id} className="border border-border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="font-semibold text-foreground">{debt.name}</h3>
@@ -343,7 +337,7 @@ const DebtAdvisor = () => {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => removeDebt(debt.id)}
-                                className="text-red-600"
+                                className="text-destructive"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Remove
@@ -390,7 +384,7 @@ const DebtAdvisor = () => {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Debt</DialogTitle>
+              <DialogTitle className="font-display">Edit Debt</DialogTitle>
               <DialogDescription>
                 Update the details of your debt.
               </DialogDescription>
@@ -403,7 +397,6 @@ const DebtAdvisor = () => {
                     id="editName"
                     value={editingDebt.name}
                     onChange={(e) => setEditingDebt({...editingDebt, name: e.target.value})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 <div>
@@ -413,7 +406,6 @@ const DebtAdvisor = () => {
                     type="number"
                     value={editingDebt.balance}
                     onChange={(e) => setEditingDebt({...editingDebt, balance: parseInt(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 <div>
@@ -423,7 +415,6 @@ const DebtAdvisor = () => {
                     type="number"
                     value={editingDebt.minPayment}
                     onChange={(e) => setEditingDebt({...editingDebt, minPayment: parseInt(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 <div>
@@ -434,10 +425,9 @@ const DebtAdvisor = () => {
                     step="0.1"
                     value={editingDebt.interestRate}
                     onChange={(e) => setEditingDebt({...editingDebt, interestRate: parseFloat(e.target.value) || 0})}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
-                <Button onClick={updateDebt} className="w-full">
+                <Button onClick={updateDebt} className="w-full gradient-bg text-primary-foreground">
                   Update Debt
                 </Button>
               </div>
