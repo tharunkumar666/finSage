@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import EmptyState from '@/components/EmptyState';
+import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useQueryClient } from '@tanstack/react-query';
