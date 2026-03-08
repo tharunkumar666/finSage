@@ -14,6 +14,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BottomNav from "./components/layout/BottomNav";
+import CommandPalette from "./components/CommandPalette";
 
 // Lazy-loaded pages
 const Index = React.lazy(() => import("./pages/Index"));
