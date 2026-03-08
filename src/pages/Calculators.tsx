@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 interface SIPData {
   monthlyAmount: number;
@@ -215,6 +216,7 @@ const Calculators = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">Financial Calculators</h1>
@@ -489,6 +491,7 @@ const Calculators = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

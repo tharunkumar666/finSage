@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -32,6 +33,7 @@ const Contact = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-display font-bold text-foreground mb-4">Contact Us</h1>
@@ -214,6 +216,7 @@ const Contact = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

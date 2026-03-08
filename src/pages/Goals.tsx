@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 interface Goal {
   id: number;
@@ -109,6 +110,7 @@ const Goals = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -418,6 +420,7 @@ const Goals = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

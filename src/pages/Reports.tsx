@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 const Reports = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('1M');
@@ -47,6 +48,7 @@ const Reports = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -347,6 +349,7 @@ const Reports = () => {
         )}
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

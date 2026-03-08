@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 const DebtAdvisor = () => {
   const [strategy, setStrategy] = useState('snowball');
@@ -127,6 +128,7 @@ const DebtAdvisor = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
@@ -436,6 +438,7 @@ const DebtAdvisor = () => {
         </Dialog>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

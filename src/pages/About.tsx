@@ -3,6 +3,7 @@ import { Users, Target, Shield, TrendingUp, Award, Heart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 
 const About = () => {
   const teamMembers = [
@@ -30,6 +31,7 @@ const About = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -167,6 +169,7 @@ const About = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );

@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageTransition from '@/components/PageTransition';
 import { z } from 'zod';
 
 const profileSchema = z.object({
@@ -153,6 +154,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
+      <PageTransition>
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
@@ -333,6 +335,7 @@ const Profile = () => {
         </div>
       </div>
 
+      </PageTransition>
       <Footer />
     </div>
   );
