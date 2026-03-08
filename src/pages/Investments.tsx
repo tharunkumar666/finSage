@@ -66,6 +66,8 @@ const Investments = () => {
   const [stockInsights, setStockInsights] = useState<StockInsights | null>(null);
   const [isValidatingStock, setIsValidatingStock] = useState(false);
   const [isFetchingInsights, setIsFetchingInsights] = useState(false);
+  const [recommendations, setRecommendations] = useState<string | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   const [newInvestment, setNewInvestment] = useState({
     name: '',
