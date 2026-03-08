@@ -133,7 +133,7 @@ const Calculators = () => {
   const debtResult = calculateDebtPayoff();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-6xl mx-auto px-6 py-8">
