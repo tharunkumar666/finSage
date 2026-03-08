@@ -88,6 +88,11 @@ const Header = () => {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-3">
+            {user && (
+              <kbd className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                ⌘K
+              </kbd>
+            )}
             <ThemeToggle />
             
             {user ? (
