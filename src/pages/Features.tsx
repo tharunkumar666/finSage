@@ -231,7 +231,7 @@ const Features = () => {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

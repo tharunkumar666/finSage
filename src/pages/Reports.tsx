@@ -347,7 +347,7 @@ const Reports = () => {
             </Card>
           </div>
         )}
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

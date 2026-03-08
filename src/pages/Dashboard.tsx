@@ -97,7 +97,7 @@ const Dashboard = () => {
             <DashboardActivity activities={activities} />
             <DashboardDebtOverview debts={debts} />
           </div>
-        </div>
+        </main>
       </PageTransition>
       <Footer />
     </div>

@@ -214,7 +214,7 @@ const Contact = () => {
             </Card>
           </div>
         </div>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

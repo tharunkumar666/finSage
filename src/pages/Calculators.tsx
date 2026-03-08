@@ -489,7 +489,7 @@ const Calculators = () => {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

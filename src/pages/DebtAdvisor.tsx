@@ -436,7 +436,7 @@ const DebtAdvisor = () => {
             )}
           </DialogContent>
         </Dialog>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

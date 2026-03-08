@@ -167,7 +167,7 @@ const About = () => {
             </a>
           </div>
         </div>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

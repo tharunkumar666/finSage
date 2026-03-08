@@ -418,7 +418,7 @@ const Goals = () => {
             </DialogContent>
           </Dialog>
         )}
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

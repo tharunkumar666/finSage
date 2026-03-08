@@ -210,7 +210,7 @@ const Premium = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

@@ -106,7 +106,7 @@ const Investments = () => {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
+        </main>
       </PageTransition>
       <Footer />
     </div>

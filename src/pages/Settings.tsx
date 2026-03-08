@@ -888,7 +888,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />
