@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle, ArrowUpRight, ArrowDownRight, BarChart3, Wallet, RefreshCw } from 'lucide-react';
+import { TrendingUp, Target, AlertCircle, PlusCircle, ArrowUpRight, ArrowDownRight, BarChart3, Wallet, RefreshCw, Activity, PartyPopper } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import EmptyState from '@/components/EmptyState';
+import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useQueryClient } from '@tanstack/react-query';
@@ -41,21 +43,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <Skeleton className="h-8 w-64 rounded-2xl mb-2" />
-            <Skeleton className="h-4 w-48 rounded-2xl" />
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-2xl" />
-            ))}
-          </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Skeleton className="h-64 rounded-2xl" />
-            <Skeleton className="h-64 rounded-2xl" />
-          </div>
-        </div>
+        <DashboardSkeleton />
       </div>
     );
   }
@@ -182,18 +170,13 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {investments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <TrendingUp className="h-5 w-5 text-primary" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">No investments yet</p>
-                    <Link to="/investments">
-                      <Button size="sm" className="gradient-bg text-primary-foreground rounded-xl text-xs">
-                        <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
-                        Add Investment
-                      </Button>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="No investments yet"
+                    description="Start building your portfolio by adding your first investment."
+                    actionLabel="Add Investment"
+                    actionHref="/investments"
+                  />
                 ) : (
                   <div className="space-y-3">
                     {investments.slice(0, 5).map((inv) => {
@@ -243,18 +226,13 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {goals.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
-                      <Target className="h-5 w-5 text-accent" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">No goals set yet</p>
-                    <Link to="/goals">
-                      <Button size="sm" className="gradient-bg text-primary-foreground rounded-xl text-xs">
-                        <Target className="h-3.5 w-3.5 mr-1.5" />
-                        Set a Goal
-                      </Button>
-                    </Link>
-                  </div>
+                  <EmptyState
+                    icon={Target}
+                    title="No goals set yet"
+                    description="Define your financial goals and track your progress."
+                    actionLabel="Set a Goal"
+                    actionHref="/goals"
+                  />
                 ) : (
                   <div className="space-y-5">
                     {goals.slice(0, 4).map((goal) => {
@@ -325,7 +303,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {activities.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No recent activity</p>
+                  <EmptyState icon={Activity} title="No recent activity" description="Your actions will appear here as you use FinSage." />
                 ) : (
                   <div className="space-y-2">
                     {activities.map((activity) => (
@@ -357,9 +335,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {debts.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground">No debts recorded 🎉</p>
-                  </div>
+                  <EmptyState icon={PartyPopper} title="Debt free!" description="You have no debts recorded. Keep it up! 🎉" />
                 ) : (
                   <div className="space-y-3">
                     {debts.map((debt) => (

@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical, Sparkles, RefreshCw } from 'lucide-react';
+import EmptyState from '@/components/EmptyState';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -688,9 +689,13 @@ const Investments = () => {
                     ))}
                     
                     {userInvestments.length === 0 && (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">No investments yet. Add your first investment to get started!</p>
-                      </div>
+                      <EmptyState
+                        icon={TrendingUp}
+                        title="No investments yet"
+                        description="Add your first investment to get started!"
+                        actionLabel="Add Investment"
+                        actionHref="/investments"
+                      />
                     )}
                   </div>
                 )}
