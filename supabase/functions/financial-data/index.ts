@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest } from '../_shared/auth.ts';
+import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
 
 interface FinancialDataRequest {
   symbol: string;
@@ -14,42 +11,24 @@ interface FinancialDataRequest {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify authentication and validate JWT
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const contentLength = parseInt(req.headers.get('Content-Length') || '0', 10);
+    if (contentLength > 10240) {
+      return errorResponse(413, 'Request too large', corsHeaders);
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      console.error('JWT validation failed:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid or expired authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { user, supabaseClient } = await authenticateRequest(req);
 
     const { symbol, period = '1mo', interval = '1d' } = await req.json() as FinancialDataRequest;
 
     if (!symbol) {
-      return new Response(
-        JSON.stringify({ error: 'Symbol is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(400, 'Symbol is required', corsHeaders);
     }
 
     // Try symbol with .NS suffix for Indian stocks
@@ -106,13 +85,11 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error fetching financial data:', error);
-    const errorMessage = error.message === 'FINANCIAL_DATA_UNAVAILABLE' 
-      ? 'Unable to fetch financial data. For Indian stocks, try symbols like RELIANCE, TCS, INFY, HDFCBANK'
-      : 'An error occurred while processing your request';
     
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    if (error.message === 'FINANCIAL_DATA_UNAVAILABLE') {
+      return errorResponse(500, 'Unable to fetch financial data. For Indian stocks, try symbols like RELIANCE, TCS, INFY, HDFCBANK', corsHeaders);
+    }
+    
+    return handleEdgeFunctionError(error, corsHeaders);
   }
 });

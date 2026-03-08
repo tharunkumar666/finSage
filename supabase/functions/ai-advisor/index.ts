@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest } from '../_shared/auth.ts';
+import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
 
 interface AIAdvisorRequest {
   query: string;
@@ -18,34 +15,19 @@ interface AIAdvisorRequest {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify authentication and validate JWT
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const contentLength = parseInt(req.headers.get('Content-Length') || '0', 10);
+    if (contentLength > 10240) {
+      return errorResponse(413, 'Request too large', corsHeaders);
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      console.error('JWT validation failed:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid or expired authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { user, supabaseClient } = await authenticateRequest(req);
 
     const { query, context } = await req.json() as AIAdvisorRequest;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -55,10 +37,7 @@ serve(async (req) => {
     }
 
     if (!query) {
-      return new Response(
-        JSON.stringify({ error: 'Query is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(400, 'Query is required', corsHeaders);
     }
 
     // Build context string from user data
@@ -120,17 +99,11 @@ ${contextString}`;
       console.error('AI Gateway error:', response.status);
       
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse(429, 'Rate limit exceeded. Please try again later.', corsHeaders);
       }
       
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse(402, 'Payment required. Please add credits to your workspace.', corsHeaders);
       }
 
       throw new Error('AI_SERVICE_UNAVAILABLE');
@@ -150,18 +123,14 @@ ${contextString}`;
   } catch (error) {
     console.error('Error in AI advisor function:', error);
     
-    let errorMessage = 'An error occurred while processing your request';
     if (error.message === 'AI_SERVICE_UNAVAILABLE') {
-      errorMessage = 'AI service is temporarily unavailable. Please try again later.';
+      return errorResponse(500, 'AI service is temporarily unavailable. Please try again later.', corsHeaders);
     } else if (error.message === 'AI_NO_RESPONSE') {
-      errorMessage = 'Unable to generate a response. Please try again.';
+      return errorResponse(500, 'Unable to generate a response. Please try again.', corsHeaders);
     } else if (error.message === 'LOVABLE_API_KEY is not configured') {
-      errorMessage = 'Service configuration error. Please contact support.';
+      return errorResponse(500, 'Service configuration error. Please contact support.', corsHeaders);
     }
     
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return handleEdgeFunctionError(error, corsHeaders);
   }
 });

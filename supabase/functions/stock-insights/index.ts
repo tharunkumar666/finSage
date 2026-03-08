@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest } from '../_shared/auth.ts';
+import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
 
 interface StockInsightsRequest {
   symbol: string;
@@ -44,7 +41,6 @@ const POPULAR_INDIAN_STOCKS: Record<string, { name: string; exchange: string }> 
 };
 
 async function fetchStockData(symbol: string) {
-  // Try the symbol as-is first, then with .NS and .BO suffixes
   const symbolsToTry = [symbol];
   if (!symbol.includes('.')) {
     symbolsToTry.push(`${symbol}.NS`, `${symbol}.BO`);
@@ -72,54 +68,31 @@ async function fetchStockData(symbol: string) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const contentLength = parseInt(req.headers.get('Content-Length') || '0', 10);
+    if (contentLength > 10240) {
+      return errorResponse(413, 'Request too large', corsHeaders);
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { user, supabaseClient } = await authenticateRequest(req);
 
     const { symbol, action = 'all', userBudget } = await req.json() as StockInsightsRequest;
 
     if (!symbol) {
-      return new Response(
-        JSON.stringify({ error: 'Symbol is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(400, 'Symbol is required', corsHeaders);
     }
 
     // Fetch stock data with fallback symbol resolution
     const stockResult = await fetchStockData(symbol.toUpperCase());
 
     if (!stockResult) {
-      return new Response(
-        JSON.stringify({ 
-          error: `Stock symbol "${symbol}" not found. For Indian stocks, try: RELIANCE, TCS, INFY, HDFCBANK, SBIN, ITC, etc.`,
-          isValid: false 
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(400, `Stock symbol "${symbol}" not found. For Indian stocks, try: RELIANCE, TCS, INFY, HDFCBANK, SBIN, ITC, etc.`, corsHeaders);
     }
 
     const { result, queriedSymbol } = stockResult;
@@ -171,10 +144,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(500, 'AI service not configured', corsHeaders);
     }
 
     const marketCap = meta.marketCap;
@@ -224,22 +194,13 @@ Be specific, actionable, and use ₹ for all amounts.`;
 
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse(429, 'Rate limit exceeded. Please try again later.', corsHeaders);
       }
       if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI service requires payment. Please add credits.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorResponse(402, 'AI service requires payment. Please add credits.', corsHeaders);
       }
       console.error('AI API error:', aiResponse.status);
-      return new Response(
-        JSON.stringify({ error: 'AI service error' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorResponse(500, 'AI service error', corsHeaders);
     }
 
     const aiData = await aiResponse.json();
@@ -279,12 +240,6 @@ Be specific, actionable, and use ₹ for all amounts.`;
     );
   } catch (error) {
     console.error('Error in stock-insights:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An error occurred',
-        isValid: false
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return handleEdgeFunctionError(error, corsHeaders);
   }
 });
