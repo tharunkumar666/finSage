@@ -1,17 +1,26 @@
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, TrendingUp, User, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, TrendingUp, User, LogOut, Settings, History, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -32,111 +41,120 @@ const Header = () => {
     { name: 'Goals', href: '/goals' },
   ];
 
+  const isActive = (href: string) => location.pathname === href;
+
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'glass-card border-b border-border/50'
+          : 'bg-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 p-2 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-white" />
+          <Link to="/" className="flex items-center space-x-2.5 group">
+            <div className="gradient-bg p-2 rounded-xl transition-transform duration-300 group-hover:scale-105">
+              <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              Fin<span className="text-green-600">Sage</span>
+            <span className="text-xl font-display font-bold text-foreground">
+              Fin<span className="gradient-text">Sage</span>
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {user ? (
-              <>
-                {authenticatedItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </>
-            ) : (
-              <>
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </>
-            )}
+          <nav className="hidden md:flex items-center space-x-1">
+            {(user ? authenticatedItems : navigationItems).map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  isActive(item.href)
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {item.name}
+                {isActive(item.href) && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute bottom-0 left-3 right-3 h-0.5 gradient-bg rounded-full"
+                  />
+                )}
+              </Link>
+            ))}
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <ThemeToggle />
             
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative flex items-center space-x-2 rounded-xl hover:bg-muted px-2">
+                    <Avatar className="h-8 w-8 border-2 border-primary/20">
                       <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-                      <AvatarFallback className="bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
+                      <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">
                         {user.email?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground hidden sm:block" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <DropdownMenuContent className="w-56 bg-card border-border rounded-xl shadow-lg" align="end" forceMount>
+                  <div className="flex items-center gap-3 p-3">
+                    <Avatar className="h-10 w-10 border-2 border-primary/20">
+                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-semibold text-foreground">
                         {user.user_metadata?.name || 'User'}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-muted-foreground truncate max-w-[160px]">
                         {user.email}
                       </p>
                     </div>
                   </div>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                    <Link to="/profile" className="flex items-center cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                      <User className="mr-2 h-4 w-4" />
+                    <Link to="/settings" className="flex items-center cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/history" className="flex items-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                      <User className="mr-2 h-4 w-4" />
+                    <Link to="/history" className="flex items-center cursor-pointer">
+                      <History className="mr-2 h-4 w-4" />
                       History
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="hidden sm:flex items-center space-x-2">
                 <Link to="/auth/login">
-                  <Button variant="ghost" className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth/register">
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  <Button size="sm" className="gradient-bg text-primary-foreground rounded-xl shadow-md hover:shadow-lg transition-shadow">
                     Get Started
                   </Button>
                 </Link>
@@ -147,94 +165,64 @@ const Header = () => {
             <div className="md:hidden">
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-gray-700 dark:text-gray-300"
+                className="rounded-xl"
               >
-                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
-            <div className="flex flex-col space-y-2">
-              {user ? (
-                <>
-                  {authenticatedItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-border/50 overflow-hidden"
+            >
+              <div className="flex flex-col space-y-1 py-4">
+                {(user ? authenticatedItems : navigationItems).map((item) => (
                   <Link
-                    to="/profile"
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
+                    key={item.name}
+                    to={item.href}
+                    className={`px-3 py-2.5 text-sm font-medium rounded-xl transition-colors ${
+                      isActive(item.href)
+                        ? 'text-primary bg-primary/10'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Profile
+                    {item.name}
                   </Link>
-                  <Link
-                    to="/settings"
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
-                  <Link
-                    to="/history"
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    History
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-3 py-2 text-base font-medium text-left"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  {navigationItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                  <Link
-                    to="/auth/login"
-                    className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 px-3 py-2 text-base font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="text-green-600 hover:text-green-700 px-3 py-2 text-base font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                ))}
+                {user ? (
+                  <>
+                    <div className="border-t border-border/50 my-2" />
+                    <Link to="/profile" className="px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
+                    <Link to="/settings" className="px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>Settings</Link>
+                    <button onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }} className="px-3 py-2.5 text-sm text-destructive text-left rounded-xl">Sign Out</button>
+                  </>
+                ) : (
+                  <>
+                    <div className="border-t border-border/50 my-2" />
+                    <div className="flex gap-2 px-3">
+                      <Link to="/auth/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="outline" size="sm" className="w-full rounded-xl">Sign In</Button>
+                      </Link>
+                      <Link to="/auth/register" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button size="sm" className="w-full gradient-bg text-primary-foreground rounded-xl">Get Started</Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );
