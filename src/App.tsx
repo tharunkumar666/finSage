@@ -9,6 +9,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import RiskQuiz from "./pages/RiskQuiz";
 import Dashboard from "./pages/Dashboard";
 import Investments from "./pages/Investments";
@@ -26,6 +28,9 @@ import Features from "./pages/Features";
 import Goals from "./pages/Goals";
 import ProfileCompletion from "./pages/ProfileCompletion";
 import InvestmentJourney from "./pages/InvestmentJourney";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Help from "./pages/Help";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -42,6 +47,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/profile-completion" element={<ProtectedRoute><ProfileCompletion /></ProtectedRoute>} />
               <Route path="/quiz" element={<ProtectedRoute><RiskQuiz /></ProtectedRoute>} />
               <Route path="/investment-journey" element={<ProtectedRoute><InvestmentJourney /></ProtectedRoute>} />
@@ -58,6 +65,9 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/features" element={<Features />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/help" element={<Help />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

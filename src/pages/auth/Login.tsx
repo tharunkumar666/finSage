@@ -159,7 +159,12 @@ const Login = () => {
                   </button>
                 </div>
               </div>
-              
+
+              <div className="text-right">
+                <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <Button 
                 type="submit" 
                 className="w-full h-11 gradient-bg text-primary-foreground rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
