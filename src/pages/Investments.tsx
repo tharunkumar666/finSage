@@ -840,24 +840,31 @@ const Investments = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <PieChart className="h-5 w-5 text-purple-600" />
-                    Asset Allocation
+                    Portfolio Breakdown
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">Current portfolio distribution</CardDescription>
+                  <CardDescription className="text-muted-foreground">Your holdings by value</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(portfolioData.allocation).map(([key, data]) => (
-                      <div key={key} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium capitalize text-muted-foreground">{key}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {data.percentage}% (₹{data.value.toLocaleString()})
-                          </span>
-                        </div>
-                        <Progress value={data.percentage} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
+                  {userInvestments.length > 0 ? (
+                    <div className="space-y-4">
+                      {userInvestments.map((inv) => {
+                        const pct = portfolioData.totalValue > 0 ? (inv.totalValue / portfolioData.totalValue) * 100 : 0;
+                        return (
+                          <div key={inv.id} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-muted-foreground">{inv.symbol}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {pct.toFixed(1)}% (₹{inv.totalValue.toLocaleString()})
+                              </span>
+                            </div>
+                            <Progress value={pct} className="h-2" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">Add investments to see your portfolio breakdown</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -865,31 +872,34 @@ const Investments = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <BarChart3 className="h-5 w-5 text-green-600" />
-                    Performance Metrics
+                    Performance Summary
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">Key portfolio statistics</CardDescription>
+                  <CardDescription className="text-muted-foreground">Based on your actual holdings</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
-                        <p className="text-sm text-green-600 dark:text-green-300">Total Return</p>
-                        <p className="text-xl font-bold text-green-700 dark:text-green-300">+8.5%</p>
+                      <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-green-600 dark:text-green-300">Total Gain/Loss</p>
+                        <p className={`text-xl font-bold ${portfolioData.todayChange >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {portfolioData.todayChange >= 0 ? '+' : ''}₹{portfolioData.todayChange.toLocaleString()}
+                        </p>
                       </div>
-                      <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
-                        <p className="text-sm text-blue-600 dark:text-blue-300">Annual Return</p>
-                        <p className="text-xl font-bold text-blue-700 dark:text-blue-300">+12.3%</p>
+                      <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-blue-600 dark:text-blue-300">Return %</p>
+                        <p className={`text-xl font-bold ${portfolioData.todayChangePercent >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {portfolioData.todayChangePercent >= 0 ? '+' : ''}{portfolioData.todayChangePercent.toFixed(2)}%
+                        </p>
                       </div>
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
-                        <p className="text-sm text-purple-600 dark:text-purple-300">Risk Score</p>
-                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300">6.5/10</p>
+                      <div className="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-purple-600 dark:text-purple-300">Holdings</p>
+                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300">{userInvestments.length}</p>
                       </div>
-                      <div className="bg-orange-50 dark:bg-orange-900 p-3 rounded-lg">
-                        <p className="text-sm text-orange-600 dark:text-orange-300">Diversification</p>
-                        <p className="text-xl font-bold text-orange-700 dark:text-orange-300">Good</p>
+                      <div className="bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg">
+                        <p className="text-sm text-orange-600 dark:text-orange-300">Portfolio Value</p>
+                        <p className="text-xl font-bold text-orange-700 dark:text-orange-300">₹{portfolioData.totalValue.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
@@ -905,32 +915,10 @@ const Investments = () => {
                 <CardDescription className="text-muted-foreground">Your latest investment activity</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentTransactions.map((transaction, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-2 h-2 rounded-full ${
-                          transaction.type === 'Buy' ? 'bg-green-500' : 
-                          transaction.type === 'Sell' ? 'bg-red-500' : 'bg-blue-500'
-                        }`}></div>
-                        <div>
-                          <p className="font-medium text-foreground">{transaction.asset}</p>
-                          <p className="text-sm text-muted-foreground">{transaction.date}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className={`font-medium ${
-                          transaction.amount > 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {transaction.shares !== 0 && `${transaction.shares} shares`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-center py-12">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">Transaction history coming soon</p>
+                  <p className="text-sm text-muted-foreground mt-1">We're working on tracking your buy/sell activity automatically.</p>
                 </div>
               </CardContent>
             </Card>

@@ -532,43 +532,22 @@ const Settings = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-blue-600" />
-                    Two-Factor Authentication
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-blue-600" />
+                      Two-Factor Authentication
+                    </CardTitle>
+                    <Badge variant="secondary">Coming Soon</Badge>
+                  </div>
                   <CardDescription>
-                    Add an extra layer of security to your account
+                    Two-factor authentication will be available soon. We'll notify you when it's ready.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Two-Factor Authentication</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {twoFactorEnabled 
-                          ? 'Two-factor authentication is currently enabled' 
-                          : 'Enable two-factor authentication for better security'}
-                      </p>
-                    </div>
-                    <Switch 
-                      checked={twoFactorEnabled} 
-                      onCheckedChange={setTwoFactorEnabled} 
-                    />
-                  </div>
-                  
-                  {twoFactorEnabled && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4 rounded-lg">
-                      <div className="flex items-start">
-                        <Check className="h-5 w-5 mr-2 text-green-600 mt-1" />
-                        <div>
-                          <p className="font-medium text-green-800 dark:text-green-300">Two-factor authentication is enabled</p>
-                          <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                            Your account is now more secure. You'll be asked for an authentication code when you sign in on new devices.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <CardContent>
+                  <Button variant="outline" onClick={() => toast({ title: 'Noted!', description: "We'll notify you when 2FA is available." })}>
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notify Me
+                  </Button>
                 </CardContent>
               </Card>
 
