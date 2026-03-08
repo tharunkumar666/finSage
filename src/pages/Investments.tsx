@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical, Sparkles, RefreshCw } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
@@ -14,9 +14,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { supabase } from '@/integrations/supabase/client';
+import { useInvestments, useCreateInvestment, useUpdateInvestment, useDeleteInvestment } from '@/hooks/useInvestments';
+import type { InvestmentWithMetrics, StockInsightsResponse } from '@/types';
 
 const investmentSchema = z.object({
   name: z.string().trim().min(1, 'Investment name is required').max(100, 'Name must be less than 100 characters'),
@@ -27,47 +30,22 @@ const investmentSchema = z.object({
   purchaseDate: z.string().optional()
 });
 
-interface Investment {
-  id: string;
-  name: string;
-  symbol: string;
-  shares: number;
-  current_price: number;
-  purchase_price?: number;
-  purchase_date?: string;
-  totalValue: number;
-  gainLoss: number;
-  gainLossPercent: number;
-}
-
-interface StockInsights {
-  isValid: boolean;
-  symbol: string;
-  name: string;
-  exchange: string;
-  currentPrice: number;
-  previousClose: number;
-  priceChange: number;
-  priceChangePercent: number;
-  currency: string;
-  insights?: string;
-  canInvest?: boolean;
-  affordableShares?: number;
-}
-
 const Investments = () => {
   const { toast } = useToast();
   const [selectedRiskProfile] = useState('Moderate');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [userInvestments, setUserInvestments] = useState<Investment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
-  const [stockInsights, setStockInsights] = useState<StockInsights | null>(null);
+  const [editingInvestment, setEditingInvestment] = useState<InvestmentWithMetrics | null>(null);
+  const [stockInsights, setStockInsights] = useState<StockInsightsResponse | null>(null);
   const [isValidatingStock, setIsValidatingStock] = useState(false);
   const [isFetchingInsights, setIsFetchingInsights] = useState(false);
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+
+  const { data: rawInvestments, isLoading } = useInvestments();
+  const createMutation = useCreateInvestment();
+  const updateMutation = useUpdateInvestment();
+  const deleteMutation = useDeleteInvestment();
 
   const [newInvestment, setNewInvestment] = useState({
     name: '',
@@ -78,58 +56,14 @@ const Investments = () => {
     purchaseDate: new Date().toISOString().split('T')[0]
   });
 
-  useEffect(() => {
-    fetchInvestments();
-  }, []);
-
-  const fetchInvestments = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('investments')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedInvestments: Investment[] = (data || []).map(inv => {
-        const totalValue = Number(inv.shares) * Number(inv.current_price);
-        const purchaseValue = inv.purchase_price ? Number(inv.shares) * Number(inv.purchase_price) : totalValue;
-        const gainLoss = totalValue - purchaseValue;
-        const gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
-
-        return {
-          id: inv.id,
-          name: inv.name,
-          symbol: inv.symbol,
-          shares: Number(inv.shares),
-          current_price: Number(inv.current_price),
-          purchase_price: inv.purchase_price ? Number(inv.purchase_price) : undefined,
-          purchase_date: inv.purchase_date,
-          totalValue,
-          gainLoss,
-          gainLossPercent
-        };
-      });
-
-      setUserInvestments(formattedInvestments);
-    } catch (error) {
-      console.error('Error fetching investments:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load investments',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Compute metrics from raw data
+  const userInvestments: InvestmentWithMetrics[] = (rawInvestments ?? []).map(inv => {
+    const totalValue = Number(inv.shares) * Number(inv.current_price);
+    const purchaseValue = inv.purchase_price ? Number(inv.shares) * Number(inv.purchase_price) : totalValue;
+    const gainLoss = totalValue - purchaseValue;
+    const gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+    return { ...inv, totalValue, gainLoss, gainLossPercent };
+  });
 
   // Calculate portfolio data from actual investments
   const calculatePortfolioData = () => {
@@ -228,7 +162,6 @@ const Investments = () => {
       const data = await response.json();
       setStockInsights(data);
       
-      // Auto-fill the form with validated data
       setNewInvestment(prev => ({
         ...prev,
         name: data.name,
@@ -295,31 +228,15 @@ const Investments = () => {
     try {
       const validatedData = investmentSchema.parse(newInvestment);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to add investments',
-          variant: 'destructive'
-        });
-        return;
-      }
+      await createMutation.mutateAsync({
+        name: validatedData.name,
+        symbol: validatedData.symbol,
+        shares: validatedData.shares,
+        current_price: validatedData.currentPrice,
+        purchase_price: validatedData.purchasePrice || validatedData.currentPrice,
+        purchase_date: validatedData.purchaseDate || new Date().toISOString().split('T')[0],
+      });
 
-      const { error } = await supabase
-        .from('investments')
-        .insert({
-          user_id: user.id,
-          name: validatedData.name,
-          symbol: validatedData.symbol,
-          shares: validatedData.shares,
-          current_price: validatedData.currentPrice,
-          purchase_price: validatedData.purchasePrice || validatedData.currentPrice,
-          purchase_date: validatedData.purchaseDate || new Date().toISOString().split('T')[0]
-        });
-
-      if (error) throw error;
-
-      await fetchInvestments();
       setNewInvestment({ name: '', symbol: '', shares: 0, currentPrice: 0, purchasePrice: 0, purchaseDate: new Date().toISOString().split('T')[0] });
       setStockInsights(null);
       setIsAddDialogOpen(false);
@@ -344,7 +261,7 @@ const Investments = () => {
     }
   };
 
-  const updateInvestment = async () => {
+  const updateInvestmentHandler = async () => {
     if (!editingInvestment) return;
 
     try {
@@ -353,25 +270,20 @@ const Investments = () => {
         symbol: editingInvestment.symbol,
         shares: editingInvestment.shares,
         currentPrice: editingInvestment.current_price,
-        purchasePrice: editingInvestment.purchase_price,
-        purchaseDate: editingInvestment.purchase_date
+        purchasePrice: editingInvestment.purchase_price ?? undefined,
+        purchaseDate: editingInvestment.purchase_date ?? undefined
       });
 
-      const { error } = await supabase
-        .from('investments')
-        .update({
-          name: validatedData.name,
-          symbol: validatedData.symbol,
-          shares: validatedData.shares,
-          current_price: validatedData.currentPrice,
-          purchase_price: validatedData.purchasePrice,
-          purchase_date: validatedData.purchaseDate
-        })
-        .eq('id', editingInvestment.id);
+      await updateMutation.mutateAsync({
+        id: editingInvestment.id,
+        name: validatedData.name,
+        symbol: validatedData.symbol,
+        shares: validatedData.shares,
+        current_price: validatedData.currentPrice,
+        purchase_price: validatedData.purchasePrice,
+        purchase_date: validatedData.purchaseDate,
+      });
 
-      if (error) throw error;
-
-      await fetchInvestments();
       setIsEditDialogOpen(false);
       setEditingInvestment(null);
       toast({
@@ -397,14 +309,7 @@ const Investments = () => {
 
   const removeInvestment = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('investments')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      await fetchInvestments();
+      await deleteMutation.mutateAsync(id);
       toast({
         title: 'Investment removed',
         description: 'Your investment has been successfully removed.'
@@ -418,7 +323,7 @@ const Investments = () => {
     }
   };
 
-  const openEditDialog = (investment: Investment) => {
+  const openEditDialog = (investment: InvestmentWithMetrics) => {
     setEditingInvestment(investment);
     setIsEditDialogOpen(true);
   };
@@ -590,8 +495,8 @@ const Investments = () => {
                     onChange={(e) => setNewInvestment({...newInvestment, purchaseDate: e.target.value})}
                   />
                 </div>
-                <Button onClick={addInvestment} className="w-full">
-                  Add Investment
+                <Button onClick={addInvestment} className="w-full" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Adding...' : 'Add Investment'}
                 </Button>
               </div>
             </DialogContent>
@@ -670,8 +575,8 @@ const Investments = () => {
                       onChange={(e) => setEditingInvestment({...editingInvestment, purchase_date: e.target.value})}
                     />
                   </div>
-                  <Button onClick={updateInvestment} className="w-full">
-                    Update Investment
+                  <Button onClick={updateInvestmentHandler} className="w-full" disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? 'Updating...' : 'Update Investment'}
                   </Button>
                 </div>
               )}
@@ -721,8 +626,10 @@ const Investments = () => {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Loading investments...</p>
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-28 rounded-lg" />
+                    ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
