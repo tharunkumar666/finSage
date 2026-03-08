@@ -215,7 +215,7 @@ const Investments = () => {
       }
 
       const response = await fetch(
-        `https://shicrzxqugqlpxyisvpw.supabase.co/functions/v1/stock-insights`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stock-insights`,
         {
           method: 'POST',
           headers: {
