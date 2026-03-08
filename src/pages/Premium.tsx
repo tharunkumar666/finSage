@@ -89,7 +89,7 @@ const Premium = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto px-6 py-8">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -210,7 +210,7 @@ const Premium = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

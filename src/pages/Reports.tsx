@@ -49,7 +49,7 @@ const Reports = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center gap-2">
@@ -347,7 +347,7 @@ const Reports = () => {
             </Card>
           </div>
         )}
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

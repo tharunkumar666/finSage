@@ -336,7 +336,7 @@ const Settings = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <main id="main-content" role="main" className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             Settings
@@ -888,7 +888,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

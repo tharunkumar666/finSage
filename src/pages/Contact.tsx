@@ -34,7 +34,7 @@ const Contact = () => {
       <Header />
       
       <PageTransition>
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <main id="main-content" role="main" className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-display font-bold text-foreground mb-4">Contact Us</h1>
           <p className="text-xl text-muted-foreground">
@@ -214,7 +214,7 @@ const Contact = () => {
             </Card>
           </div>
         </div>
-      </div>
+      </main>
 
       </PageTransition>
       <Footer />

@@ -27,7 +27,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative overflow-hidden border-t border-border">
+    <footer role="contentinfo" className="relative overflow-hidden border-t border-border">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/[0.02] pointer-events-none" />
       
@@ -56,6 +56,7 @@ const Footer = () => {
                 <a
                   key={i}
                   href={href}
+                  aria-label={Icon === Twitter ? 'Twitter' : Icon === Linkedin ? 'LinkedIn' : 'GitHub'}
                   className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 >
                   <Icon className="h-4 w-4" />

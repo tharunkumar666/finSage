@@ -45,16 +45,24 @@ const Header = () => {
 
   return (
     <header
+      role="banner"
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'glass-card border-b border-border/50'
           : 'bg-transparent'
       }`}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-xl"
+      >
+        Skip to content
+      </a>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2.5 group">
+          <Link to="/" className="flex items-center space-x-2.5 group" aria-label="FinSage home">
             <div className="gradient-bg p-2 rounded-xl transition-transform duration-300 group-hover:scale-105">
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -64,7 +72,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1" role="navigation" aria-label="Main navigation">
             {(user ? authenticatedItems : navigationItems).map((item) => (
               <Link
                 key={item.name}
@@ -74,6 +82,7 @@ const Header = () => {
                     ? 'text-primary bg-primary/10'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
+                aria-current={isActive(item.href) ? 'page' : undefined}
               >
                 {item.name}
                 {isActive(item.href) && (
@@ -98,7 +107,7 @@ const Header = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative flex items-center space-x-2 rounded-xl hover:bg-muted px-2">
+                  <Button variant="ghost" className="relative flex items-center space-x-2 rounded-xl hover:bg-muted px-2" aria-label="User menu">
                     <Avatar className="h-8 w-8 border-2 border-primary/20">
                       <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
                       <AvatarFallback className="bg-primary/10 text-primary font-display font-semibold text-sm">
@@ -173,6 +182,8 @@ const Header = () => {
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="rounded-xl"
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={isMobileMenuOpen}
               >
                 {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
@@ -189,7 +200,7 @@ const Header = () => {
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden border-t border-border/50 overflow-hidden"
             >
-              <div className="flex flex-col space-y-1 py-4">
+              <nav className="flex flex-col space-y-1 py-4" role="navigation" aria-label="Mobile navigation">
                 {(user ? authenticatedItems : navigationItems).map((item) => (
                   <Link
                     key={item.name}
@@ -199,6 +210,7 @@ const Header = () => {
                         ? 'text-primary bg-primary/10'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.name}
@@ -224,7 +236,7 @@ const Header = () => {
                     </div>
                   </>
                 )}
-              </div>
+              </nav>
             </motion.div>
           )}
         </AnimatePresence>
