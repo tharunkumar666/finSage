@@ -98,7 +98,7 @@ const Register = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+      <main id="main-content" role="main" className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,7 +132,7 @@ const Register = () => {
               className="w-full h-11 rounded-xl border-border hover:bg-muted font-medium"
               disabled={loading}
             >
-              <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -151,19 +151,19 @@ const Register = () => {
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-foreground">Full Name</Label>
-                <Input id="name" type="text" placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} required className="h-11 rounded-xl bg-background border-border" />
+                <Input id="name" type="text" placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} required aria-required="true" autoComplete="name" className="h-11 rounded-xl bg-background border-border" />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
-                <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11 rounded-xl bg-background border-border" />
+                <Label htmlFor="reg-email" className="text-sm font-medium text-foreground">Email</Label>
+                <Input id="reg-email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required aria-required="true" autoComplete="email" className="h-11 rounded-xl bg-background border-border" />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+                <Label htmlFor="reg-password" className="text-sm font-medium text-foreground">Password</Label>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Create a strong password" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-11 rounded-xl bg-background border-border pr-10" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <Input id="reg-password" type={showPassword ? 'text' : 'password'} placeholder="Create a strong password" value={password} onChange={(e) => setPassword(e.target.value)} required aria-required="true" autoComplete="new-password" className="h-11 rounded-xl bg-background border-border pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showPassword ? 'Hide password' : 'Show password'}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -172,15 +172,15 @@ const Register = () => {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirm Password</Label>
                 <div className="relative">
-                  <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="h-11 rounded-xl bg-background border-border pr-10" />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required aria-required="true" autoComplete="new-password" className="h-11 rounded-xl bg-background border-border pr-10" />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
               
               <div className="flex items-start space-x-2">
-                <Checkbox id="terms" checked={acceptTerms} onCheckedChange={(checked) => setAcceptTerms(checked === true)} className="mt-0.5" />
+                <Checkbox id="terms" checked={acceptTerms} onCheckedChange={(checked) => setAcceptTerms(checked === true)} className="mt-0.5" aria-required="true" />
                 <Label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
                   I accept the{' '}
                   <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>{' '}and{' '}
@@ -199,7 +199,7 @@ const Register = () => {
             </p>
           </div>
         </motion.div>
-      </div>
+      </main>
     </div>
   );
 };

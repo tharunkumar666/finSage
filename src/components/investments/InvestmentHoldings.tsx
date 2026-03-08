@@ -50,7 +50,7 @@ const InvestmentHoldings = ({ investments, isLoading, onEdit, onDelete }: Invest
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" aria-label={`Options for ${investment.name}`}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
