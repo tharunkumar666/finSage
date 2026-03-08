@@ -3,12 +3,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest } from '../_shared/auth.ts';
 import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
-
-interface StockInsightsRequest {
-  symbol: string;
-  action?: 'validate' | 'insights' | 'price' | 'all';
-  userBudget?: number;
-}
+import { stockInsightsSchema } from '../_shared/validators.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 // Popular Indian stock symbols mapping for validation
 const INDIAN_STOCK_SUFFIXES = ['.NS', '.BO'];
