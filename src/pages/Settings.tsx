@@ -336,8 +336,10 @@ const Settings = () => {
       
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             Settings
+          </h1>
+          <p className="text-muted-foreground">
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             Manage your account preferences and settings
