@@ -340,8 +340,6 @@ const Settings = () => {
             Settings
           </h1>
           <p className="text-muted-foreground">
-          </h1>
-          <p className="text-muted-foreground">
             Manage your account preferences and settings
           </p>
         </div>
