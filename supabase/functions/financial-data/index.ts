@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest } from '../_shared/auth.ts';
 import { errorResponse, handleEdgeFunctionError } from '../_shared/errors.ts';
+import { checkRateLimit } from '../_shared/rateLimiter.ts';
 import { financialDataSchema } from '../_shared/validators.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
@@ -20,6 +21,15 @@ serve(async (req) => {
     }
 
     const { user, supabaseClient } = await authenticateRequest(req);
+
+    // Rate limit check
+    const rateCheck = await checkRateLimit(supabaseClient, user.id, 'financial-data');
+    if (!rateCheck.allowed) {
+      return errorResponse(429, 'Rate limit exceeded. Try again later.', {
+        ...corsHeaders,
+        'Retry-After': String(rateCheck.retryAfter || 60),
+      });
+    }
 
     let parsed;
     try {
