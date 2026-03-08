@@ -141,62 +141,48 @@ const Investments = () => {
       totalValue,
       todayChange: totalGainLoss,
       todayChangePercent,
-      allocation: {
-        stocks: { value: totalValue * 0.45, percentage: 45, change: 2.1 },
-        bonds: { value: totalValue * 0.25, percentage: 25, change: 0.5 },
-        crypto: { value: totalValue * 0.15, percentage: 15, change: -1.2 },
-        cash: { value: totalValue * 0.15, percentage: 15, change: 0.0 }
-      }
     };
   };
 
   const portfolioData = calculatePortfolioData();
 
-  const recommendedInvestments = [
-    {
-      name: 'Nifty 50 Index Fund',
-      type: 'Index Fund',
-      risk: 'Moderate',
-      expectedReturn: '10-12%',
-      description: 'Diversified exposure to top 50 Indian companies',
-      allocation: 30,
-      reason: 'Matches your moderate risk profile with strong historical returns'
-    },
-    {
-      name: 'HDFC Corporate Bond Fund',
-      type: 'Debt Mutual Fund',
-      risk: 'Low',
-      expectedReturn: '7-9%',
-      description: 'Investment in high-quality corporate bonds',
-      allocation: 25,
-      reason: 'Provides stability and consistent income to balance your portfolio'
-    },
-    {
-      name: 'ICICI Prudential Bluechip Fund',
-      type: 'Mutual Fund',
-      risk: 'Moderate',
-      expectedReturn: '12-15%',
-      description: 'Large cap equity mutual fund with proven track record',
-      allocation: 15,
-      reason: 'Strong performance in large cap segment with lower volatility'
-    },
-    {
-      name: 'Bitcoin (BTC)',
-      type: 'Cryptocurrency',
-      risk: 'High',
-      expectedReturn: '15-25%',
-      description: 'Leading cryptocurrency with high volatility',
-      allocation: 10,
-      reason: 'Small allocation for portfolio diversification and growth potential'
-    }
-  ];
+  const fetchRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: 'Authentication required', description: 'Please log in', variant: 'destructive' });
+        return;
+      }
 
-  const recentTransactions = [
-    { date: '2024-01-15', type: 'Buy', asset: 'RELIANCE', amount: 28455, shares: 10, price: 2845.50 },
-    { date: '2024-01-10', type: 'Buy', asset: 'BTC', amount: 50000, shares: 0.012, price: 4166666 },
-    { date: '2024-01-05', type: 'Sell', asset: 'INFY', amount: -22140, shares: -15, price: 1476 },
-    { date: '2024-01-01', type: 'Dividend', asset: 'TCS', amount: 750, shares: 0, price: 0 }
-  ];
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-advisor`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: 'Based on my current portfolio, suggest personalized investment recommendations for the Indian market. Include specific fund names, risk levels, expected returns, and reasoning.',
+            context: {
+              investments: userInvestments.map(inv => ({ name: inv.name, symbol: inv.symbol, value: inv.totalValue })),
+              riskProfile: selectedRiskProfile,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      const data = await response.json();
+      setRecommendations(data.advice);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      toast({ title: 'Error', description: 'Failed to fetch AI recommendations', variant: 'destructive' });
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
 
   const validateAndFetchStockData = async (symbol: string) => {
     if (!symbol || symbol.length < 2) {
