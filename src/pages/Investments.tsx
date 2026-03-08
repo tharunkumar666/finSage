@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { TrendingUp, DollarSign, PieChart, BarChart3, Plus, Trash2, Edit2, MoreVertical, Sparkles, RefreshCw } from 'lucide-react';
+import EmptyState from '@/components/EmptyState';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
