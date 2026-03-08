@@ -303,7 +303,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {activities.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No recent activity</p>
+                  <EmptyState icon={Activity} title="No recent activity" description="Your actions will appear here as you use FinSage." />
                 ) : (
                   <div className="space-y-2">
                     {activities.map((activity) => (
