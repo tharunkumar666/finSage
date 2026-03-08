@@ -5,6 +5,8 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 import PageTransition from '@/components/PageTransition';
+import NetWorthCard from '@/components/dashboard/NetWorthCard';
+import PortfolioChart from '@/components/dashboard/PortfolioChart';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import DashboardPortfolio from '@/components/dashboard/DashboardPortfolio';
 import DashboardGoals from '@/components/dashboard/DashboardGoals';
@@ -76,11 +78,17 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-sm">Here's your financial overview</p>
           </motion.div>
 
+          <NetWorthCard investments={investments} debts={debts} />
+
           <DashboardMetrics investments={investments} debts={debts} goals={goals} />
 
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
             <DashboardPortfolio investments={investments} />
             <DashboardGoals goals={goals} />
+          </div>
+
+          <div className="mb-8">
+            <PortfolioChart investments={investments} />
           </div>
 
           <DashboardQuickActions />
