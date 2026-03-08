@@ -1,51 +1,16 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle, Loader2, ArrowUpRight, ArrowDownRight, BarChart3, Wallet } from 'lucide-react';
+import { TrendingUp, DollarSign, Target, AlertCircle, PlusCircle, ArrowUpRight, ArrowDownRight, BarChart3, Wallet, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-
-interface InvestmentRow {
-  id: string;
-  name: string;
-  symbol: string;
-  shares: number;
-  current_price: number;
-  purchase_price: number | null;
-  purchase_date: string | null;
-  created_at: string | null;
-}
-
-interface DebtRow {
-  id: string;
-  name: string;
-  balance: number;
-  interest_rate: number;
-  minimum_payment: number | null;
-  type: string;
-}
-
-interface GoalRow {
-  id: string;
-  name: string;
-  target_amount: number;
-  current_amount: number | null;
-  category: string | null;
-}
-
-interface ActivityRow {
-  id: string;
-  action: string;
-  description: string;
-  category: string;
-  created_at: string | null;
-}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -57,35 +22,13 @@ const fadeUp = {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [investments, setInvestments] = useState<InvestmentRow[]>([]);
-  const [debts, setDebts] = useState<DebtRow[]>([]);
-  const [goals, setGoals] = useState<GoalRow[]>([]);
-  const [activities, setActivities] = useState<ActivityRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data, isLoading, error } = useDashboardData();
 
-  useEffect(() => {
-    if (user) fetchDashboardData();
-  }, [user]);
-
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      const [investmentsRes, debtsRes, goalsRes, activitiesRes] = await Promise.all([
-        supabase.from('investments').select('*').order('created_at', { ascending: false }),
-        supabase.from('debts').select('*').order('created_at', { ascending: false }),
-        supabase.from('financial_goals').select('*').order('created_at', { ascending: false }),
-        supabase.from('activity_history').select('*').order('created_at', { ascending: false }).limit(5),
-      ]);
-      if (investmentsRes.data) setInvestments(investmentsRes.data);
-      if (debtsRes.data) setDebts(debtsRes.data);
-      if (goalsRes.data) setGoals(goalsRes.data);
-      if (activitiesRes.data) setActivities(activitiesRes.data);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const investments = data?.investments ?? [];
+  const debts = data?.debts ?? [];
+  const goals = data?.goals ?? [];
+  const activities = data?.activities ?? [];
 
   const totalInvestmentValue = investments.reduce((sum, inv) => sum + (inv.shares * inv.current_price), 0);
   const totalPurchaseValue = investments.reduce((sum, inv) => sum + (inv.shares * (inv.purchase_price || inv.current_price)), 0);
@@ -94,15 +37,48 @@ const Dashboard = () => {
   const avgDebtRate = debts.length > 0 ? debts.reduce((sum, d) => sum + d.interest_rate, 0) / debts.length : 0;
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Investor';
 
-  if (loading) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <Skeleton className="h-8 w-64 rounded-2xl mb-2" />
+            <Skeleton className="h-4 w-48 rounded-2xl" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-2xl" />
+            ))}
+          </div>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Skeleton className="h-64 rounded-2xl" />
+            <Skeleton className="h-64 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex items-center justify-center py-32">
-          <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading your dashboard...</p>
-          </div>
+          <Card className="rounded-2xl border-border max-w-md w-full">
+            <CardContent className="p-8 text-center">
+              <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+              <h2 className="text-lg font-display font-semibold text-foreground mb-2">Failed to load dashboard data</h2>
+              <p className="text-sm text-muted-foreground mb-6">{error.message}</p>
+              <Button
+                onClick={() => queryClient.invalidateQueries()}
+                className="gradient-bg text-primary-foreground rounded-xl"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
