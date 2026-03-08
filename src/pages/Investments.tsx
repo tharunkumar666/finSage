@@ -795,62 +795,41 @@ const Investments = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <Sparkles className="h-5 w-5 text-blue-600" />
                   AI Investment Recommendations
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Based on your {selectedRiskProfile} risk profile and current market conditions
+                  Get personalized recommendations based on your portfolio
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {recommendedInvestments.map((investment, index) => (
-                    <Card key={index} className="border border-blue-200 dark:border-blue-900">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg text-foreground">{investment.name}</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">{investment.type}</p>
-                          </div>
-                          <Badge className={getRiskColor(investment.risk)}>
-                            {investment.risk} Risk
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <p className="text-sm text-muted-foreground">{investment.description}</p>
-                          
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">Expected Return</p>
-                              <p className="font-semibold text-foreground">{investment.expectedReturn}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Suggested Allocation</p>
-                              <p className="font-semibold text-foreground">{investment.allocation}%</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                            <p className="text-sm text-blue-800 dark:text-blue-300">
-                              <strong>Why we recommend this:</strong> {investment.reason}
-                            </p>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button className="flex-1 bg-green-600 hover:bg-green-700">
-                              Invest Now
-                            </Button>
-                            <Button variant="outline" className="flex-1">
-                              Learn More
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {!recommendations && !isLoadingRecommendations && (
+                  <div className="text-center py-12">
+                    <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">Click to get personalized AI recommendations</p>
+                    <Button onClick={fetchRecommendations} className="bg-primary hover:bg-primary/90">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Get AI Recommendations
+                    </Button>
+                  </div>
+                )}
+                {isLoadingRecommendations && (
+                  <div className="text-center py-12">
+                    <RefreshCw className="h-8 w-8 text-muted-foreground mx-auto mb-4 animate-spin" />
+                    <p className="text-muted-foreground">Analyzing your portfolio and generating recommendations...</p>
+                  </div>
+                )}
+                {recommendations && !isLoadingRecommendations && (
+                  <div className="space-y-4">
+                    <div className="prose dark:prose-invert max-w-none text-sm whitespace-pre-wrap text-foreground">
+                      {recommendations}
+                    </div>
+                    <Button variant="outline" onClick={fetchRecommendations} className="mt-4">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Recommendations
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
