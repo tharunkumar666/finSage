@@ -88,6 +88,7 @@ const App = () => (
               </Routes>
             </Suspense>
             <BottomNav />
+            <CommandPalette />
           </BrowserRouter>
         </ThemeProvider>
       </AuthProvider>
