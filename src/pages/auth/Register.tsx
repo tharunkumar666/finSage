@@ -42,15 +42,6 @@ const Register = () => {
     setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      toast({ title: "Sign Up Failed", description: error.message, variant: "destructive" });
-    }
-    setLoading(false);
-  };
-
   if (user) return null;
 
   const benefits = [
