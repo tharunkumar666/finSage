@@ -67,7 +67,7 @@ const Index = () => {
   const stats = [
     { value: '₹0', label: 'Free to Start' },
     { value: 'AI', label: 'Gemini Powered' },
-    { value: 'NSE', label: 'Indian Markets' },
+    { value: 'NSE/BSE', label: 'Indian Markets' },
     { value: '24/7', label: 'Always Available' },
   ];
 
