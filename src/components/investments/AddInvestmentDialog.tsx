@@ -149,7 +149,7 @@ const AddInvestmentDialog = ({ open, onOpenChange, onSuccess }: AddInvestmentDia
                 <RefreshCw className={`h-4 w-4 ${isValidatingStock ? 'animate-spin' : ''}`} />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Add .NS for NSE stocks (e.g., RELIANCE.NS, TCS.NS, INFY.NS)</p>
+            <p className="text-xs text-muted-foreground mt-1">Add .NS for NSE or .BO for BSE stocks (e.g., RELIANCE.NS, TCS.BO, INFY.NS)</p>
           </div>
 
           {stockInsights && (
