@@ -28,15 +28,6 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      toast({ title: "Sign In Failed", description: error.message, variant: "destructive" });
-    }
-    setLoading(false);
-  };
-
   if (user) return null;
 
   return (
